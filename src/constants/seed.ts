@@ -1,0 +1,183 @@
+import { Customer } from '../types/customer';
+import { Material } from '../types/material';
+
+// export const INIT_STAFF: Staff[] = [
+//   {
+//     id: 's1',
+//     authId: 's1@',
+//     role: 'technician',
+//     name: 'Nguyễn Thị Lan',
+//     phone: '0901 234 567',
+//     revenueShareRate: 40,
+//     currentMonthRevenue: 2400,
+//     zaloId: 'lan.nguyen',
+//     review:
+//       'Khách hàng rất hài lòng, kỹ thuật massage chuyên nghiệp và nhẹ nhàng.',
+//   },
+//   {
+//     id: 's2',
+//     name: 'Trần Văn Minh',
+//     phone: '0912 345 678',
+//     revenueShareRate: 45,
+//     currentMonthRevenue: 3200,
+//     zaloId: 'minh.tran',
+//     review: 'Tay nghề tốt, đặc biệt chuyên về trị liệu cổ vai gáy.',
+//   },
+//   {
+//     id: 's3',
+//     name: 'Lê Thị Hoa',
+//     phone: '0923 456 789',
+//     revenueShareRate: 40,
+//     currentMonthRevenue: 1800,
+//     zaloId: 'hoa.le',
+//     review: 'Nhiệt tình, chu đáo, phù hợp với khách hàng nữ.',
+//   },
+// ];
+
+export const INIT_CUSTOMERS: Customer[] = [
+  {
+    id: 'c1',
+    name: 'Phạm Thu Hương',
+    phone: '0934 567 890',
+    source: 'tiktok',
+    visitCount: 7,
+    review: 'Dịch vụ tuyệt vời, nhân viên thân thiện. Sẽ quay lại lần sau.',
+  },
+  {
+    id: 'c2',
+    name: 'Đỗ Quang Huy',
+    phone: '0945 678 901',
+    source: 'ban_be',
+    visitCount: 3,
+    review:
+      'Được bạn bè giới thiệu, không thất vọng. Cảm giác thư giãn rất tốt.',
+  },
+  {
+    id: 'c3',
+    name: 'Võ Thị Bích',
+    phone: '0956 789 012',
+    source: 'dot_xuat',
+    visitCount: 1,
+    review: 'Lần đầu ghé thử, hài lòng với chất lượng dịch vụ.',
+  },
+  {
+    id: 'c4',
+    name: 'Nguyễn Minh Tuấn',
+    phone: '0967 890 123',
+    source: 'tiktok',
+    visitCount: 12,
+    review: 'Khách thân thiết, luôn đặt trước.',
+  },
+  {
+    id: 'c5',
+    name: 'Trần Thị Mai',
+    phone: '0978 901 234',
+    source: 'ban_be',
+    visitCount: 5,
+    review: 'Giới thiệu từ chị đồng nghiệp, rất hài lòng với massage body nữ.',
+  },
+];
+
+// export const INIT_BOOKINGS: Booking[] = [
+//   {
+//     id: 'b1',
+//     customerName: 'Phạm Thu Hương',
+//     phone: '0934 567 890',
+//     serviceId: 'goi-dau-60',
+//     bedNumber: '2',
+//     date: TODAY,
+//     startTime: '14:00',
+//     staffId: 's1',
+//     note: 'Khách thích nước ấm',
+//     status: 'upcoming',
+//   },
+//   {
+//     id: 'b2',
+//     customerName: 'Đỗ Quang Huy',
+//     phone: '0945 678 901',
+//     serviceId: 'tri-lieu-co-vai-gay',
+//     bedNumber: '1',
+//     date: TODAY,
+//     startTime: '10:00',
+//     staffId: 's2',
+//     status: 'done',
+//   },
+//   {
+//     id: 'b3',
+//     customerName: 'Võ Thị Bích',
+//     phone: '0956 789 012',
+//     serviceId: 'massage-body-nu',
+//     bedNumber: '3',
+//     date: TODAY,
+//     startTime: '11:00',
+//     staffId: 's1',
+//     status: 'in_progress',
+//   },
+//   {
+//     id: 'b4',
+//     customerName: 'Nguyễn Minh Tuấn',
+//     phone: '0967 890 123',
+//     serviceId: 'massage-body-nam',
+//     bedNumber: '4',
+//     date: TODAY,
+//     startTime: '09:30',
+//     staffId: 's3',
+//     status: 'done',
+//   },
+//   {
+//     id: 'b5',
+//     customerName: 'Trần Thị Mai',
+//     phone: '0978 901 234',
+//     serviceId: 'goi-dau-85',
+//     bedNumber: '2',
+//     date: TODAY,
+//     startTime: '16:30',
+//     staffId: 's3',
+//     status: 'open',
+//   },
+// ];
+
+export const INIT_MATERIALS: Material[] = [
+  {
+    id: 'm1',
+    name: 'Khăn massage cao cấp',
+    code: 'KM-001',
+    durability: 'tot',
+    quantity: 24,
+  },
+  {
+    id: 'm2',
+    name: 'Dầu massage oải hương',
+    code: 'DM-002',
+    durability: 'tot',
+    quantity: 8,
+  },
+  {
+    id: 'm3',
+    name: 'Gối tựa đầu',
+    code: 'GT-003',
+    durability: 'trung_binh',
+    quantity: 4,
+  },
+  {
+    id: 'm4',
+    name: 'Nệm massage',
+    code: 'NM-004',
+    durability: 'can_thay',
+    quantity: 2,
+  },
+  {
+    id: 'm5',
+    name: 'Tinh dầu bạc hà',
+    code: 'TD-005',
+    durability: 'tot',
+    quantity: 12,
+  },
+  {
+    id: 'm6',
+    name: 'Bàn massage gỗ',
+    code: 'BG-006',
+    durability: 'trung_binh',
+    quantity: 4,
+  },
+];
