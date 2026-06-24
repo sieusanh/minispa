@@ -15,7 +15,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Field } from '@/components/ui/field';
-import { INIT_BOOKINGS } from '@/constants/seed';
 import { SERVICES } from '@/constants/config';
 // import { Staff } from '@/types';
 import { type Staff } from '@/types';
