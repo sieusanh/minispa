@@ -8,12 +8,14 @@ export function deriveStatus(
 ): BookingStatus {
   if (booking.status === BookingStatus.CANCELLED)
     return BookingStatus.CANCELLED;
-  const start = new Date(`${booking.date}T${booking.startTime}`);
+
+  const bookingDate = new Date(booking.date!).toLocaleDateString('en-CA');
+  const start = new Date(`${bookingDate}T${booking.startTime}`);
   const endTime = addMinutesToTime(
     booking.startTime!,
     SERVICES.find((s) => s.id === booking.serviceId)!.durationMin
   );
-  const end = new Date(`${booking.date}T${endTime}`);
+  const end = new Date(`${bookingDate}T${endTime}`);
   const minsUntilStart = (start.getTime() - now.getTime()) / 1000 / 60;
 
   if (now >= end) return BookingStatus.DONE;
@@ -27,7 +29,8 @@ export function transformBookingInput(
   offsetMins: number
 ) {
   payload.isActive = true;
-  payload.status = deriveStatus(payload);
+
+  //   payload.status = deriveStatus(payload);
   payload.date = getDateWithOffset(payload.date!, offsetMins);
   return payload;
 }
