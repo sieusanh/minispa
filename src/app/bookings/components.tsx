@@ -274,8 +274,8 @@ export function BookingDrawer({
   function validate() {
     const e: Partial<Record<keyof Booking, string>> = {};
     if (!form.customerName!.trim()) e.customerName = 'Bắt buộc';
-    if (!form.phone!.trim() || form.phone!.replace(/\D/g, '').length < 9)
-      e.phone = 'Số điện thoại không hợp lệ';
+    // if (!form.phone!.trim() || form.phone!.replace(/\D/g, '').length < 9)
+    //   e.phone = 'Số điện thoại không hợp lệ';
     if (!form.serviceId) e.serviceId = 'Bắt buộc';
     if (!form.staffId) e.staffId = 'Bắt buộc';
     setErrs(e);
@@ -289,8 +289,9 @@ export function BookingDrawer({
       return;
     }
 
-    onSave(form);
-    // onClose();
+    const savedBooking = { ...form };
+    savedBooking.status = deriveStatus(savedBooking);
+    onSave(savedBooking);
     handleClose();
   }
 
@@ -330,13 +331,13 @@ export function BookingDrawer({
               />
             </Field>
 
-            <Field label="Số điện thoại *" error={errs.phone}>
+            {/* <Field label="Số điện thoại *" error={errs.phone}>
               <Input
                 value={form.phone}
                 onChange={(e) => upd('phone', e.target.value)}
                 placeholder=""
               />
-            </Field>
+            </Field> */}
 
             <Field label="Dịch vụ *" error={errs.serviceId}>
               <Select
@@ -512,8 +513,8 @@ export function BookingEditDrawer({
   function validate() {
     const e: Partial<Record<keyof Booking, string>> = {};
     if (!form.customerName!.trim()) e.customerName = 'Bắt buộc';
-    if (!form.phone!.trim() || form.phone!.replace(/\D/g, '').length < 9)
-      e.phone = 'Số điện thoại không hợp lệ';
+    // if (!form.phone!.trim() || form.phone!.replace(/\D/g, '').length < 9)
+    //   e.phone = 'Số điện thoại không hợp lệ';
     if (!form.serviceId) e.serviceId = 'Bắt buộc';
     if (!form.staffId) e.staffId = 'Bắt buộc';
     setErrs(e);
@@ -527,9 +528,13 @@ export function BookingEditDrawer({
       return;
     }
 
-    onSave(form);
-    // onClose();
+    const savedBooking = { ...form };
+    savedBooking.status = deriveStatus(savedBooking);
+    onSave(savedBooking);
     handleClose();
+
+    // onSave(form);
+    // onClose();
   }
 
   function handleDelete(id: string) {
@@ -573,13 +578,13 @@ export function BookingEditDrawer({
               />
             </Field>
 
-            <Field label="Số điện thoại *" error={errs.phone}>
+            {/* <Field label="Số điện thoại *" error={errs.phone}>
               <Input
                 value={form.phone}
                 onChange={(e) => upd('phone', e.target.value)}
                 placeholder="0934 567 890"
               />
-            </Field>
+            </Field> */}
 
             <Field label="Dịch vụ *" error={errs.serviceId}>
               <Select
@@ -813,19 +818,25 @@ export function Scheduler({
   useEffect(() => {
     const id = setInterval(() => {
       const now = new Date();
-      let isChanged: boolean = false;
-      const freshBookings = bookingsRef.current.map((b) => ({ ...b })); // clone
-      for (const b of freshBookings) {
+      const curBookings = [...bookingsRef.current];
+      const oldBookings: Partial<Booking>[] = [];
+      const freshBookings: Partial<Booking>[] = [];
+      for (const b of curBookings) {
         const derived = deriveStatus(b, now);
         if (b.status !== derived) {
           b.status = derived;
-          isChanged = true;
+          freshBookings.push(b);
+          return true;
+        } else {
+          oldBookings.push(b);
+          return false;
         }
       }
-      if (isChanged) {
+
+      if (freshBookings?.length > 0) {
         startSaving(async () => {
           await bulkUpdateBooking(freshBookings);
-          setBookings(freshBookings);
+          setBookings([...oldBookings, ...freshBookings]);
         });
       }
       //   setBookings(freshBookings);
@@ -858,6 +869,7 @@ export function Scheduler({
     startSaving(async () => {
       const offsetMins = new Date().getTimezoneOffset();
       await upsertBooking(d, offsetMins);
+
       if (!compareDateString(d.date!, date)) {
         return;
       }
@@ -869,15 +881,16 @@ export function Scheduler({
   function handleSaveEdit(d: Partial<Booking>) {
     startSaving(async () => {
       const offsetMins = new Date().getTimezoneOffset();
-
       await upsertBooking(d, offsetMins);
+
       if (!compareDateString(d.date!, date)) {
         setBookings((prev) =>
           //   [...prev].filter((b) => compareDateString(b.date!, TODAY))
           [...prev].filter((b) => b.id !== d.id)
         );
       } else {
-        const cloned = [...bookings].map((b) => (b.id === d.id ? d : b));
+        // const cloned = [...bookings].map((b) => (b.id === d.id ? d : b));
+        const cloned = [...bookings];
         setBookings(cloned);
       }
     });

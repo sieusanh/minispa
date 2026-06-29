@@ -18,7 +18,7 @@ export enum BedKey {
 
 export interface Booking extends IBase {
   customerName: string;
-  phone: string;
+  //   phone: string;
   serviceId: string;
   bedKey: BedKey;
   date: Date;

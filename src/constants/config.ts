@@ -151,7 +151,7 @@ export function durCfg(d: Durability) {
 
 export const EMPTY_DRAFT: Booking = {
   customerName: '',
-  phone: '',
+  //   phone: '',
   serviceId: '',
   bedKey: BedKey.BED_1,
   date: TODAY,
