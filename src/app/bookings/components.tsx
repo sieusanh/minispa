@@ -220,21 +220,7 @@ export function BookingTimeline({
                     }}
                   />
                 ))}
-                {
-                  // bookings.length > 0 &&
-                  //   bookings
-                  //     .filter((b) => b.bedKey === bed)
-                  //     .map((b) => {
-                  //       return (
-                  //         <BookingBlock
-                  //           //   key={b.id}
-                  //           key={b.id ?? `${b.bedKey}-${b.startTime}-${b.date}`}
-                  //           booking={b}
-                  //           onClick={() => onBlockClick?.(b)}
-                  //           readOnly={readOnly}
-                  //         />
-                  //       );
-                  //     })
+                {bookings.length > 0 &&
                   bookings
                     .filter((b) => b.bedKey === bed)
                     .map((b) => {
@@ -247,8 +233,7 @@ export function BookingTimeline({
                           readOnly={readOnly}
                         />
                       );
-                    })
-                }
+                    })}
               </div>
             </div>
           ))}
@@ -509,7 +494,6 @@ export function BookingEditDrawer({
   const [errs, setErrs] = useState<Partial<Record<keyof Booking, string>>>({});
   const [conflict, setConflict] = useState(false);
   const [delOpen, setDelOpen] = useState(false);
-  const [isPending, startTransition] = useTransition();
 
   const svc = SERVICES.find((s) => s.id === form.serviceId);
   const member = staff.find((s) => s.id === form.staffId);
@@ -541,6 +525,7 @@ export function BookingEditDrawer({
       setConflict(true);
       return;
     }
+
     onSave(form);
     // onClose();
     handleClose();
@@ -774,7 +759,7 @@ export function BookingEditDrawer({
           <AlertDialogFooter>
             <AlertDialogCancel>Hủy</AlertDialogCancel>
             <AlertDialogAction
-              className={`bg-destructive text-destructive-foreground hover:bg-destructive/90 ${isPending && 'opacity-60 pointer-events-none'}`}
+              className={`bg-destructive text-destructive-foreground hover:bg-destructive/90 ${isDeleting && 'opacity-60 pointer-events-none'}`}
               onClick={() => {
                 if (form.id) {
                   handleDelete(form.id);
@@ -884,6 +869,7 @@ export function Scheduler({
   function handleSaveEdit(d: Partial<Booking>) {
     startSaving(async () => {
       const offsetMins = new Date().getTimezoneOffset();
+
       await upsertBooking(d, offsetMins);
       if (!compareDateString(d.date!, date)) {
         setBookings((prev) =>
@@ -965,7 +951,7 @@ export function Scheduler({
       />
       <BookingEditDrawer
         // key={active.id ?? 'new'}
-        key={active.id}
+        key={`${active.id} - ${new Date().getTime()}`}
         open={editOpen}
         onClose={() => setEditOpen(false)}
         booking={active}
