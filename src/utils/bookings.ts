@@ -22,11 +22,17 @@ export function deriveStatus(
   return BookingStatus.OPEN;
 }
 
-export function transformDataBooking(
+export function transformBookingInput(
   payload: Partial<Booking>,
   offsetMins: number
 ) {
   payload.isActive = true;
   payload.date = getDateWithOffset(payload.date!, offsetMins);
   return payload;
+}
+
+export function transformBookingOutput(data: Partial<Booking>) {
+  data.isActive = true;
+  data.date = new Date(data.date!);
+  return data;
 }

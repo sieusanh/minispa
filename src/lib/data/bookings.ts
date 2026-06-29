@@ -6,13 +6,11 @@ import { createAdminClient } from '../supabase/admin';
 import { TABLE_NAMES } from '@/constants/config';
 import { CACHE_TAG } from '@/constants/cache';
 import { Booking, BookingStatus, FindParams } from '@/types';
+import { toSnake, toCamel, transformDataInput } from '@/utils/common';
 import {
-  toSnake,
-  toCamel,
-  transformDataInput,
-  transformDataOutput,
-} from '@/utils/common';
-import { transformDataBooking } from '@/utils/bookings';
+  transformBookingInput,
+  transformBookingOutput,
+} from '@/utils/bookings';
 
 export async function findBookingById(id: string) {
   const supabase: SupabaseClient = await createClient();
@@ -25,7 +23,7 @@ export async function findBookingById(id: string) {
   if (error) throw error;
 
   // transmuting
-  const res = transformDataOutput(toCamel<Booking>(data));
+  const res = transformBookingOutput(toCamel<Booking>(data));
   return res;
 }
 
@@ -53,7 +51,7 @@ export async function findBookingsByDate(date: Date) {
   // transmuting
   const list: Array<Partial<Booking>> =
     data.map((d: Partial<Booking>) =>
-      transformDataOutput(toCamel<Booking>(d))
+      transformBookingOutput(toCamel<Booking>(d))
     ) || [];
 
   return list;
@@ -76,7 +74,7 @@ export async function findAllBookings(params: Partial<FindParams>) {
   // transmuting
   const list: Array<Partial<Booking>> =
     data.map((d: Partial<Booking>) =>
-      transformDataOutput(toCamel<Booking>(d))
+      transformBookingOutput(toCamel<Booking>(d))
     ) || [];
 
   return list;
@@ -95,7 +93,7 @@ export async function insertBooking(payload: Booking) {
   if (error) throw error;
 
   // transmuting
-  return transformDataOutput(toCamel<Booking>(data));
+  return transformBookingOutput(toCamel<Booking>(data));
 }
 
 export async function upsertBooking(
@@ -103,7 +101,7 @@ export async function upsertBooking(
   tzOffsetMins: number
 ) {
   // transmuting
-  const booking = toSnake(transformDataBooking(payload, tzOffsetMins));
+  const booking = toSnake(transformBookingInput(payload, tzOffsetMins));
 
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -117,7 +115,8 @@ export async function upsertBooking(
   updateTag(CACHE_TAG.BOOKINGS_BY_DATE);
 
   // transmuting
-  return transformDataOutput(toCamel<Booking>(data));
+  //   return transformBookingOutput(toCamel<Booking>(data));
+  return transformBookingOutput(toCamel<Booking>(data));
 }
 
 export async function bulkUpdateBooking(payload: Partial<Booking>[]) {
@@ -139,7 +138,7 @@ export async function bulkUpdateBooking(payload: Partial<Booking>[]) {
   // transmuting
   const res: Partial<Booking>[] =
     data.map((d: Partial<Booking>) =>
-      transformDataOutput(toCamel<Booking>(d))
+      transformBookingOutput(toCamel<Booking>(d))
     ) || [];
 
   return res;
