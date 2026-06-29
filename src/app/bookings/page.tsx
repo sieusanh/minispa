@@ -9,6 +9,8 @@
 // import { BookingTimeline, BookingDrawer } from './_components';
 
 import { findAllStaff } from '@/lib/data/staff';
+import { findBookingsByDate } from '@/lib/data/bookings';
+import { TODAY } from '@/constants/config';
 import { Scheduler } from './components';
 
 // ─── BOOKING TIMELINE ─────────────────────────────────────────────────────────
@@ -251,14 +253,13 @@ import { Scheduler } from './components';
 // }
 
 export default async function BookingPage() {
-  const staff = findAllStaff();
+  const staffPromise = findAllStaff();
+  const bookingsPromise = findBookingsByDate(TODAY);
   //   const todayQueryParam = { date: new Date() };
   //   const bookings = findAllBookings({ where: todayQueryParam });
 
   return (
-    <div>
-      <Scheduler staff={staff} />
-    </div>
+    <Scheduler staffPromise={staffPromise} bookingsPromise={bookingsPromise} />
   );
 }
 

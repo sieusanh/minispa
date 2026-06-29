@@ -48,12 +48,16 @@ import {
 } from '@/components/ui/select';
 import { upsertStaff, softDeleteStaffById } from '@/lib/data/staff';
 
-export function Staff({ staff }: { staff: Promise<Staff[]> }) {
+export function Staff({
+  staffPromise,
+}: {
+  staffPromise: Promise<Partial<Staff>[]>;
+}) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<boolean>(false);
   const [form, setForm] = useState<Partial<Staff>>({});
   const [delId, setDelId] = useState<string | null>(null);
-  const allStaff = use(staff);
+  const staff = use(staffPromise);
 
   function openCreate() {
     setEditing(false);
@@ -67,7 +71,7 @@ export function Staff({ staff }: { staff: Promise<Staff[]> }) {
     });
     setDialogOpen(true);
   }
-  function openEdit(s: Staff) {
+  function openEdit(s: Partial<Staff>) {
     setEditing(true);
     setForm({ ...s });
     setDialogOpen(true);
@@ -100,7 +104,7 @@ export function Staff({ staff }: { staff: Promise<Staff[]> }) {
         </Button>
       </div>
 
-      {allStaff.length === 0 ? (
+      {staff.length === 0 ? (
         <div className="text-center py-20">
           <Users className="size-12 text-muted-foreground mx-auto mb-4" />
           <p className="text-muted-foreground mb-4">Chưa có nhân viên nào</p>
@@ -111,9 +115,9 @@ export function Staff({ staff }: { staff: Promise<Staff[]> }) {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {allStaff.map((s) => {
+          {staff.map((s) => {
             const comm = Math.round(
-              (s.currentMonthRevenue * s.revenueShareRate) / 100
+              (s.currentMonthRevenue! * s.revenueShareRate!) / 100
             );
             return (
               <div
@@ -123,7 +127,7 @@ export function Staff({ staff }: { staff: Promise<Staff[]> }) {
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
                     <div className="size-12 rounded-full bg-primary/20 text-primary flex items-center justify-center text-sm font-semibold shrink-0">
-                      {initials(s.name)}
+                      {initials(s.name!)}
                     </div>
                     <div>
                       <p className="font-semibold text-foreground text-sm">
@@ -146,7 +150,7 @@ export function Staff({ staff }: { staff: Promise<Staff[]> }) {
                       Doanh thu tháng
                     </span>
                     <span className="font-mono font-medium text-foreground">
-                      {s.currentMonthRevenue.toLocaleString()}K
+                      {s.currentMonthRevenue!.toLocaleString()}K
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
@@ -178,7 +182,7 @@ export function Staff({ staff }: { staff: Promise<Staff[]> }) {
                     variant="ghost"
                     size="sm"
                     className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                    onClick={() => setDelId(s.id)}
+                    onClick={() => setDelId(s.id!)}
                   >
                     <Trash2 className="size-3.5" />
                   </Button>

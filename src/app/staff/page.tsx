@@ -3,8 +3,8 @@ import { Staff } from './components';
 
 export default async function StaffPage() {
   //   return <pre>{JSON.stringify(staff, null, 2)}</pre>;
-  const staff = findAllStaff();
-  return <Staff staff={staff} />;
+  const staffPromise = findAllStaff();
+  return <Staff staffPromise={staffPromise} />;
 }
 
 // export default async function Instruments() {

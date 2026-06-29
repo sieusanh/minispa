@@ -127,7 +127,7 @@ export function Customers() {
             <div key={c.id}>
               <button
                 className="w-full flex items-center gap-3 px-4 py-3 hover:bg-secondary/40 transition-colors text-left"
-                onClick={() => setExpanded(isExp ? null : c.id)}
+                onClick={() => setExpanded(isExp ? null : c.id!)}
               >
                 <div className="size-10 rounded-full bg-primary/20 text-primary flex items-center justify-center text-sm font-semibold shrink-0">
                   {initials(c.name)}
@@ -176,7 +176,7 @@ export function Customers() {
                       variant="ghost"
                       size="sm"
                       className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                      onClick={() => setDelId(c.id)}
+                      onClick={() => setDelId(c.id!)}
                     >
                       <Trash2 className="size-3.5" />
                       Xoá

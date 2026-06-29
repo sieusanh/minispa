@@ -24,7 +24,7 @@ export function checkConflict(
   const ne = ns + svc.durationMin;
   return all.some((b) => {
     if (b.id === draft.id) return false;
-    if (b.bedNumber !== draft.bedNumber) return false;
+    if (b.bedKey !== draft.bedKey) return false;
     if (!isSameDay(b.date!, draft.date!)) return false;
     const bs = SERVICES.find((s) => s.id === b.serviceId);
     if (!bs) return false;
@@ -34,11 +34,61 @@ export function checkConflict(
   });
 }
 
+// export const TIME_SLOTS: string[] = Array.from(
+//   { length: (12 * 60) / 15 + 1 },
+//   (_, i) => minToTime(TIMELINE_START_MIN + i * 15)
+// );
+
 export const TIME_SLOTS: string[] = Array.from(
-  { length: (12 * 60) / 15 + 1 },
-  (_, i) => minToTime(TIMELINE_START_MIN + i * 15)
+  { length: (12 * 60) / 5 + 1 },
+  (_, i) => minToTime(TIMELINE_START_MIN + i * 5)
 );
 
 export const HOUR_MARKS: string[] = Array.from({ length: 13 }, (_, i) =>
   minToTime(TIMELINE_START_MIN + i * 60)
 );
+
+export function convertTimeToPM(time24h: string) {
+  // Split the string into hours and minutes
+  const [hours24, minutes] = time24h.split(':').map(Number);
+
+  // Convert to 12-hour format
+  const hours12 = hours24 % 12 || 12;
+
+  return `${hours12}h${minutes}`;
+}
+
+export function addMinutesToTime(startTime: string, durationMinutes: number) {
+  // 1. Split the string into hours and minutes
+  const [hours, minutes] = startTime.split(':').map(Number);
+
+  // 2. Create a base date (using today's date) and set the hours/minutes
+  const date = new Date();
+  date.setHours(hours, minutes + durationMinutes, 0, 0);
+
+  // 3. Format the result back to HH:mm, ensuring 2-digit zero-padding
+  return date.toTimeString().slice(0, 5);
+}
+
+// export function getDateString(date: Date) {
+//   const yyyyMmDd = date.toISOString().split('T')[0];
+//   return yyyyMmDd;
+// }
+
+// export function dateStringToDate(dateStr: string) {
+//   const [year, month, day] = dateStr.split('-').map(Number);
+
+//   return new Date(year, month - 1, day);
+// }
+
+export function getDateWithOffset(date: Date, offsetMins: number) {
+  const utcTimestamp = date.getTime();
+  const offsetMillisecs =
+    (offsetMins <= 0 ? 1 : -1) * Math.abs(offsetMins) * 60 * 1000;
+
+  return new Date(utcTimestamp + offsetMillisecs);
+}
+
+export function compareDateString(d1: Date, d2: Date) {
+  return d1.toLocaleDateString('en-CA') === d2.toLocaleDateString('en-CA');
+}

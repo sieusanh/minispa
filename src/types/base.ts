@@ -1,5 +1,5 @@
 export interface IBase {
-  id: string;
+  id?: string;
   isActive?: boolean;
   createdAt?: Date;
   updatedAt?: Date;

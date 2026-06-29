@@ -136,7 +136,7 @@ export function Materials() {
                           <Edit2 className="size-3.5" />
                         </button>
                         <button
-                          onClick={() => setDelId(m.id)}
+                          onClick={() => setDelId(m.id!)}
                           className="size-7 rounded flex items-center justify-center hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
                         >
                           <Trash2 className="size-3.5" />
