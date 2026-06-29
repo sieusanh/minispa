@@ -488,9 +488,10 @@ export function BookingEditDrawer({
   onDelete: (id: string) => void;
   isDeleting: boolean;
 }) {
-  const [form, setForm] = useState<Partial<Booking>>(
-    open ? booking : EMPTY_DRAFT
-  );
+  //   const [form, setForm] = useState<Partial<Booking>>(
+  //     open ? booking : EMPTY_DRAFT
+  //   );
+  const [form, setForm] = useState<Partial<Booking>>(booking);
   const [errs, setErrs] = useState<Partial<Record<keyof Booking, string>>>({});
   const [conflict, setConflict] = useState(false);
   const [delOpen, setDelOpen] = useState(false);
@@ -539,7 +540,6 @@ export function BookingEditDrawer({
 
   function handleClose() {
     onClose();
-    setForm(EMPTY_DRAFT);
     setErrs({});
   }
 
@@ -951,7 +951,7 @@ export function Scheduler({
       />
       <BookingEditDrawer
         // key={active.id ?? 'new'}
-        key={`${active.id} - ${new Date().getTime()}`}
+        key={`${active.id} - ${active.date}`}
         open={editOpen}
         onClose={() => setEditOpen(false)}
         booking={active}
