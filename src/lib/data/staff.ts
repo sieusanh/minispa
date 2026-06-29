@@ -1,7 +1,9 @@
 'use server';
 
 import { SupabaseClient } from '@supabase/supabase-js';
+import { cacheLife } from 'next/cache';
 import { createClient } from '../supabase/server';
+import { createAdminClient } from '../supabase/admin';
 import { TABLE_NAMES } from '@/constants/config';
 import { Staff } from '@/types';
 import { toSnake, toCamel } from '@/utils/common';
@@ -23,13 +25,20 @@ export async function findStaffById(id: string) {
 }
 
 export async function findAllStaff() {
-  const supabase: SupabaseClient = await createClient();
+  'use cache';
+  cacheLife({
+    stale: 3600, // 1 hour until considered stale
+    revalidate: 7200, // 2 hours until revalidated
+    expire: 43200, // 12 hours until expired
+  });
+  const supabase: SupabaseClient = createAdminClient();
   const { data, error } = await supabase.from(TABLE_NAMES.STAFF).select('*');
 
   if (error) throw error;
 
   // transmuting
-  const list: Array<Staff> = data.map((d: Staff) => toCamel<Staff>(d) as Staff);
+  const list: Array<Partial<Staff>> =
+    data.map((d: Staff) => toCamel<Staff>(d) as Partial<Staff>) || [];
 
   return list;
 }

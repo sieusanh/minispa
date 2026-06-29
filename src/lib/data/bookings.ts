@@ -1,10 +1,18 @@
 'use server';
-
+import { cacheLife, cacheTag, updateTag } from 'next/cache';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { createClient } from '../supabase/server';
+import { createAdminClient } from '../supabase/admin';
 import { TABLE_NAMES } from '@/constants/config';
-import { Booking, FindParams } from '@/types';
-import { toSnake, toCamel } from '@/utils/common';
+import { CACHE_TAG } from '@/constants/cache';
+import { Booking, BookingStatus, FindParams } from '@/types';
+import {
+  toSnake,
+  toCamel,
+  transformDataInput,
+  transformDataOutput,
+} from '@/utils/common';
+import { transformDataBooking } from '@/utils/bookings';
 
 export async function findBookingById(id: string) {
   const supabase: SupabaseClient = await createClient();
@@ -17,30 +25,36 @@ export async function findBookingById(id: string) {
   if (error) throw error;
 
   // transmuting
-  return toCamel<Booking>(data) as Partial<Booking>;
+  const res = transformDataOutput(toCamel<Booking>(data));
+  return res;
 }
 
-export async function findTodayBookings(params?: FindParams) {
-  // 1. Establish the boundary times for the current day
-  const todayStart = new Date();
-  todayStart.setHours(0, 0, 0, 0); // Midnight this morning
+export async function findBookingsByDate(date: Date) {
+  'use cache';
+  //   cacheLife('hours');
+  cacheLife({
+    stale: 3600, // 1 hour until considered stale
+    revalidate: 7200, // 2 hours until revalidated
+    expire: 43200, // 12 hours until expired
+  });
+  cacheTag(CACHE_TAG.BOOKINGS_BY_DATE);
+  const bookingDate = date.toLocaleDateString('en-CA');
 
-  const todayEnd = new Date();
-  todayEnd.setHours(23, 55, 59, 999); // Final millisecond of the day
-
-  const supabase: SupabaseClient = await createClient();
+  const supabase: SupabaseClient = createAdminClient();
   const { data, error } = await supabase
     .from(TABLE_NAMES.BOOKINGS)
     .select('*')
-    .gte('date', todayStart.toISOString())
-    .lte('date', todayEnd.toISOString());
+    .eq('date', bookingDate)
+    .eq('is_active', true);
   //   .single();
 
   if (error) throw error;
 
   // transmuting
   const list: Array<Partial<Booking>> =
-    data.map((d: Booking) => toCamel<Booking>(d) as Partial<Booking>) || [];
+    data.map((d: Partial<Booking>) =>
+      transformDataOutput(toCamel<Booking>(d))
+    ) || [];
 
   return list;
 }
@@ -54,26 +68,23 @@ export async function findAllBookings(params: Partial<FindParams>) {
   const todayEnd = new Date();
   todayEnd.setHours(23, 55, 59, 999); // Final millisecond of the day
   const supabase: SupabaseClient = await createClient();
-  const { data, error } = await supabase
-    .from(TABLE_NAMES.BOOKINGS)
-    .select('*')
-    .gte('date', todayStart.toISOString())
-    .lte('date', todayEnd.toISOString());
+  const { data, error } = await supabase.from(TABLE_NAMES.BOOKINGS).select('*');
   // .single();
 
   if (error) throw error;
 
   // transmuting
-  const list: Array<Partial<Booking>> = data.map(
-    (d: Booking) => toCamel<Booking>(d) as Partial<Booking>
-  );
+  const list: Array<Partial<Booking>> =
+    data.map((d: Partial<Booking>) =>
+      transformDataOutput(toCamel<Booking>(d))
+    ) || [];
 
   return list;
 }
 
 export async function insertBooking(payload: Booking) {
   // transmuting
-  const booking = toSnake(payload);
+  const booking = toSnake(transformDataInput(payload));
   const supabase = await createClient();
   const { data, error } = await supabase
     .from(TABLE_NAMES.BOOKINGS)
@@ -84,12 +95,15 @@ export async function insertBooking(payload: Booking) {
   if (error) throw error;
 
   // transmuting
-  return toCamel<Booking>(data) as Partial<Booking>;
+  return transformDataOutput(toCamel<Booking>(data));
 }
 
-export async function upsertBooking(payload: Partial<Booking>) {
+export async function upsertBooking(
+  payload: Partial<Booking>,
+  tzOffsetMins: number
+) {
   // transmuting
-  const booking = toSnake(payload);
+  const booking = toSnake(transformDataBooking(payload, tzOffsetMins));
 
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -97,11 +111,38 @@ export async function upsertBooking(payload: Partial<Booking>) {
     .upsert(booking)
     .select()
     .single();
+  console.log('=========== db error ', error);
+  if (error) throw error;
+
+  updateTag(CACHE_TAG.BOOKINGS_BY_DATE);
+
+  // transmuting
+  return transformDataOutput(toCamel<Booking>(data));
+}
+
+export async function bulkUpdateBooking(payload: Partial<Booking>[]) {
+  // transmuting
+
+  const list: Array<Partial<Booking>> =
+    payload.map((d: Partial<Booking>) => toSnake<Partial<Booking>>(d)) || [];
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from(TABLE_NAMES.BOOKINGS)
+    .upsert(list)
+    .select();
 
   if (error) throw error;
 
+  updateTag(CACHE_TAG.BOOKINGS_BY_DATE);
+
   // transmuting
-  return toCamel<Booking>(data) as Partial<Booking>;
+  const res: Partial<Booking>[] =
+    data.map((d: Partial<Booking>) =>
+      transformDataOutput(toCamel<Booking>(d))
+    ) || [];
+
+  return res;
 }
 
 export async function updateBookingById(id: string, payload: Partial<Booking>) {
@@ -118,6 +159,8 @@ export async function updateBookingById(id: string, payload: Partial<Booking>) {
 
   if (error) throw error;
 
+  updateTag(CACHE_TAG.BOOKINGS_BY_DATE);
+
   // transmuting
   return toCamel<Booking>(data) as Partial<Booking>;
 }
@@ -126,12 +169,13 @@ export async function softDeleteBookingById(id: string) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from(TABLE_NAMES.BOOKINGS)
-    .update({ isActive: false })
+    .update({ is_active: false, status: BookingStatus.CANCELLED })
     .eq('id', id)
     .select()
     .single();
 
   if (error) throw error;
+  updateTag(CACHE_TAG.BOOKINGS_BY_DATE);
 
   // transmuting
   return toCamel<Booking>(data) as Partial<Booking>;
