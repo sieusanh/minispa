@@ -27,6 +27,7 @@ export function transformBookingInput(
   offsetMins: number
 ) {
   payload.isActive = true;
+  payload.status = deriveStatus(payload);
   payload.date = getDateWithOffset(payload.date!, offsetMins);
   return payload;
 }
