@@ -282,6 +282,11 @@ export function BookingBlock({
 
   const cfg = statusCfg(status!);
 
+  const startTimeStr = convertTimeToPM(startTime!);
+  const endTimeStr = convertTimeToPM(
+    addMinutesToTime(startTime!, svc.durationMin)
+  );
+
   return (
     <div
       key={id ?? `${bedKey}-${startTime}-${date}`}
@@ -295,7 +300,8 @@ export function BookingBlock({
       <div
         className={cn(
           // No absolute/left/width here — parent wrapper handles position
-          'relative h-full rounded-lg border overflow-hidden min-w-[56px]',
+          //   'relative h-full rounded-lg border overflow-hidden min-w-[56px]',
+          'relative h-full rounded-lg border overflow-hidden min-w-[36px]',
           'transition-all',
           !readOnly && 'cursor-pointer hover:brightness-110'
         )}
@@ -330,18 +336,14 @@ export function BookingBlock({
           >
             {svc.subName}
           </p>
+
           <p
             className="text-[10px] truncate font-medium"
-            style={{ color: cfg.color }}
+            style={{ color: cfg.color, whiteSpace: 'pre-wrap' }}
           >
-            {`${svc.durationMin <= 35 ? '' : convertTimeToPM(startTime!)} - ${convertTimeToPM(addMinutesToTime(startTime!, svc.durationMin))}`}
-            {/* {`${svc.durationMin <= 35 ? convertTimeToPM(startTime!, ':') : convertTimeToPM(startTime!)}${svc.durationMin <= 35 ? '.' : ' - '}${svc.durationMin <= 35 ? convertTimeToPM(addMinutesToTime(startTime!, svc.durationMin), ':') : convertTimeToPM(addMinutesToTime(startTime!, svc.durationMin))}`} */}
-          </p>
-          <p
-            className="text-[10px] truncate font-medium"
-            style={{ color: cfg.color }}
-          >
-            {staffName}
+            {svc.durationMin <= 35
+              ? `${startTimeStr} -\n${endTimeStr}`
+              : `${startTimeStr} - ${endTimeStr}\n${staffName}`}
           </p>
         </div>
         {/* <div
