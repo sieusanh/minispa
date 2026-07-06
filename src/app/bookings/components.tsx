@@ -655,7 +655,14 @@ export function BookingEditDrawer({
             <Field label="Kỹ thuật viên *" error={errs.staffId}>
               <Select
                 value={form.staffId}
-                onValueChange={(v) => upd('staffId', v)}
+                onValueChange={(v) => {
+                  const staffId = v || ADMIN.id;
+                  const staffName =
+                    staff.find((s) => s.id === v)?.name || ADMIN.name;
+
+                  upd('staffId', staffId);
+                  upd('staffName', staffName);
+                }}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Chọn KTV..." />
@@ -889,8 +896,7 @@ export function Scheduler({
           [...prev].filter((b) => b.id !== d.id)
         );
       } else {
-        // const cloned = [...bookings].map((b) => (b.id === d.id ? d : b));
-        const cloned = [...bookings];
+        const cloned = [...bookings].map((b) => (b.id === d.id ? d : b));
         setBookings(cloned);
       }
     });
