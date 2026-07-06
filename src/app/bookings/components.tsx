@@ -40,7 +40,12 @@ import { Calendar as CalendarPicker } from '@/components/ui/calendar';
 import { Field } from '@/components/ui/field';
 import { Badge } from '@/components/ui/badge';
 import { EMPTY_DRAFT, SERVICES, ADMIN, statusCfg } from '@/constants/config';
-import { TIMELINE_START_MIN, TIMELINE_TOTAL_MIN } from '@/constants/time';
+import {
+  TIMELINE_START_MIN,
+  TIMELINE_TOTAL_MIN,
+  TOTAL_WIDTH_PX,
+  HOUR_WIDTH_PX,
+} from '@/constants/time';
 import {
   checkConflict,
   TIME_SLOTS,
@@ -49,6 +54,8 @@ import {
   convertTimeToPM,
   addMinutesToTime,
   compareDateString,
+  timeToLeftPx,
+  durationToPx,
 } from '@/utils/time';
 import { formatPrice } from '@/utils/price';
 import { Booking, BookingStatus, Staff, BedKey } from '@/types';
@@ -108,6 +115,157 @@ export function DatePickerField({
   );
 }
 
+// export function BookingBlock({
+//   booking,
+//   onClick,
+//   readOnly,
+// }: {
+//   booking: Partial<Booking>;
+//   onClick?: () => void;
+//   readOnly: boolean;
+// }) {
+//   const svc = SERVICES.find((s) => s.id === booking.serviceId);
+//   if (!svc) return null;
+//   const left =
+//     ((timeToMin(booking.startTime!) - TIMELINE_START_MIN) /
+//       TIMELINE_TOTAL_MIN) *
+//     100;
+//   const width = (svc.durationMin / TIMELINE_TOTAL_MIN) * 100;
+//   const cfg = statusCfg(booking.status!);
+
+//   return (
+//     <div
+//       className={cn(
+//         'absolute top-1 bottom-1 rounded-lg border overflow-hidden min-w-[56px] transition-all',
+//         !readOnly && 'cursor-pointer hover:brightness-110'
+//       )}
+//       style={{
+//         left: `${left}%`,
+//         width: `${width}%`,
+//         backgroundColor: cfg.bg,
+//         borderColor: cfg.color,
+//       }}
+//       onClick={readOnly ? undefined : onClick}
+//     >
+//       <div className="px-2 pt-1 h-full flex flex-col justify-center gap-0.5">
+//         <p className="text-xs font-semibold text-foreground truncate leading-none">
+//           {booking.customerName}
+//         </p>
+//         <p
+//           className="text-[10px] truncate font-medium"
+//           style={{ color: cfg.color }}
+//         >
+//           {svc.subName}
+//         </p>
+//         <p
+//           className="text-[10px] truncate font-medium"
+//           style={{ color: cfg.color }}
+//         >
+//           {convertTimeToPM(booking.startTime!)} -{' '}
+//           {convertTimeToPM(
+//             addMinutesToTime(booking.startTime!, svc.durationMin)
+//           )}
+//         </p>
+//         <p
+//           className="text-[10px] truncate font-medium"
+//           style={{ color: cfg.color }}
+//         >
+//           {booking.staffName}
+//         </p>
+//       </div>
+//       <div
+//         className="absolute top-1 right-1.5 size-1.5 rounded-full"
+//         style={{ backgroundColor: cfg.color }}
+//       />
+//     </div>
+//   );
+// }
+
+// export function BookingTimeline({
+//   bookings,
+//   onBlockClick,
+//   readOnly = false,
+// }: {
+//   bookings: Partial<Booking>[];
+//   onBlockClick?: (b: Partial<Booking>) => void;
+//   readOnly?: boolean;
+// }) {
+//   return (
+//     <div className="overflow-x-auto">
+//       <div style={{ minWidth: 860 }}>
+//         {/* Time header */}
+//         <div className="flex ml-[88px] mb-2">
+//           {HOUR_MARKS.map((h) => (
+//             <div
+//               key={h}
+//               className="flex-1 text-[11px] font-mono text-muted-foreground text-center select-none"
+//             >
+//               {h}
+//             </div>
+//           ))}
+//         </div>
+//         {/* Bed rows */}
+//         <div className="space-y-2">
+//           {Object.values(BedKey).map((bed) => (
+//             <div key={bed} className="flex items-center gap-2">
+//               <div className="w-[80px] flex-shrink-0 flex justify-center">
+//                 <Badge
+//                   variant="outline"
+//                   className="text-[11px] font-medium px-2 py-1"
+//                 >
+//                   Giường {bed}
+//                 </Badge>
+//               </div>
+
+//               <div className="flex-1 relative h-[72px] rounded-lg border border-border bg-secondary/40">
+//                 {HOUR_MARKS.map((h, i) => (
+//                   <div
+//                     key={h}
+//                     className="absolute top-0 bottom-0 border-l border-border/40"
+//                     style={{
+//                       left: `${(i / (HOUR_MARKS.length - 1)) * 100}%`,
+//                     }}
+//                   />
+//                 ))}
+//                 {bookings.length > 0 &&
+//                   bookings
+//                     .filter((b) => b.bedKey === bed)
+//                     .map((b) => {
+//                       const svc = SERVICES.find((s) => s.id === b.serviceId);
+//                       if (!svc) return null;
+//                       return (
+//                         // <BookingBlock
+//                         //   //   key={b.id}
+//                         //   key={b.id ?? `${b.bedKey}-${b.startTime}-${b.date}`}
+//                         //   booking={b}
+//                         //   onClick={() => onBlockClick?.(b)}
+//                         //   readOnly={readOnly}
+//                         // />
+//                         <div
+//                           key={b.id ?? `${b.bedKey}-${b.startTime}-${b.date}`}
+//                           className="absolute top-1 bottom-1"
+//                           style={{
+//                             left: timeToLeftPx(b.startTime!), // ← px, not %
+//                             width: durationToPx(svc.durationMin), // ← px, not %
+//                           }}
+//                         >
+//                           <BookingBlock
+//                             booking={b}
+//                             onClick={() => onBlockClick?.(b)}
+//                             readOnly={readOnly}
+//                           />
+//                         </div>
+//                       );
+//                     })}
+//               </div>
+//             </div>
+//           ))}
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
+
 export function BookingBlock({
   booking,
   onClick,
@@ -119,57 +277,78 @@ export function BookingBlock({
 }) {
   const svc = SERVICES.find((s) => s.id === booking.serviceId);
   if (!svc) return null;
-  const left =
-    ((timeToMin(booking.startTime!) - TIMELINE_START_MIN) /
-      TIMELINE_TOTAL_MIN) *
-    100;
-  const width = (svc.durationMin / TIMELINE_TOTAL_MIN) * 100;
-  const cfg = statusCfg(booking.status!);
+  const { id, bedKey, startTime, date, status, customerName, staffName } =
+    booking;
+
+  const cfg = statusCfg(status!);
 
   return (
     <div
-      className={cn(
-        'absolute top-1 bottom-1 rounded-lg border overflow-hidden min-w-[56px] transition-all',
-        !readOnly && 'cursor-pointer hover:brightness-110'
-      )}
+      key={id ?? `${bedKey}-${startTime}-${date}`}
+      className="absolute top-1 bottom-1"
       style={{
-        left: `${left}%`,
-        width: `${width}%`,
-        backgroundColor: cfg.bg,
-        borderColor: cfg.color,
+        left: timeToLeftPx(startTime!),
+        width: durationToPx(svc.durationMin),
+        // fontSize: svc.durationMin <= 35 ? 10 : 16,
       }}
-      onClick={readOnly ? undefined : onClick}
     >
-      <div className="px-2 pt-1 h-full flex flex-col justify-center gap-0.5">
-        <p className="text-xs font-semibold text-foreground truncate leading-none">
-          {booking.customerName}
-        </p>
-        <p
-          className="text-[10px] truncate font-medium"
-          style={{ color: cfg.color }}
-        >
-          {svc.subName}
-        </p>
-        <p
-          className="text-[10px] truncate font-medium"
-          style={{ color: cfg.color }}
-        >
-          {convertTimeToPM(booking.startTime!)} -{' '}
-          {convertTimeToPM(
-            addMinutesToTime(booking.startTime!, svc.durationMin)
-          )}
-        </p>
-        <p
-          className="text-[10px] truncate font-medium"
-          style={{ color: cfg.color }}
-        >
-          {booking.staffName}
-        </p>
-      </div>
       <div
-        className="absolute top-1 right-1.5 size-1.5 rounded-full"
-        style={{ backgroundColor: cfg.color }}
-      />
+        className={cn(
+          // No absolute/left/width here — parent wrapper handles position
+          'relative h-full rounded-lg border overflow-hidden min-w-[56px]',
+          'transition-all',
+          !readOnly && 'cursor-pointer hover:brightness-110'
+        )}
+        style={{
+          backgroundColor: cfg.bg,
+          borderColor: cfg.color,
+        }}
+        onClick={readOnly ? undefined : onClick}
+      >
+        {/* Status dot */}
+        <div
+          className="absolute top-1 right-1.5 size-1.5 rounded-full"
+          style={{ backgroundColor: cfg.color }}
+        />
+
+        {/* Content */}
+        <div
+          className="px-2 pt-1 h-full flex flex-col justify-center gap-0.5"
+          // style={{ fontSize: svc.durationMin <= 35 ? 10 : 16 }}
+          //   style={{ fontSize: '20px !important' }}
+        >
+          <p className="text-xs font-semibold text-foreground truncate leading-none">
+            {customerName}
+          </p>
+          <p
+            className="text-[10px] truncate font-medium"
+            // className={cn(
+            //   'truncate font-medium',
+            //   svc.durationMin <= 35 ? 'text-[8px]' : 'text-[10px]'
+            // )}
+            style={{ color: cfg.color }}
+          >
+            {svc.subName}
+          </p>
+          <p
+            className="text-[10px] truncate font-medium"
+            style={{ color: cfg.color }}
+          >
+            {`${svc.durationMin <= 35 ? '' : convertTimeToPM(startTime!)} - ${convertTimeToPM(addMinutesToTime(startTime!, svc.durationMin))}`}
+            {/* {`${svc.durationMin <= 35 ? convertTimeToPM(startTime!, ':') : convertTimeToPM(startTime!)}${svc.durationMin <= 35 ? '.' : ' - '}${svc.durationMin <= 35 ? convertTimeToPM(addMinutesToTime(startTime!, svc.durationMin), ':') : convertTimeToPM(addMinutesToTime(startTime!, svc.durationMin))}`} */}
+          </p>
+          <p
+            className="text-[10px] truncate font-medium"
+            style={{ color: cfg.color }}
+          >
+            {staffName}
+          </p>
+        </div>
+        {/* <div
+          className="absolute top-1 right-1.5 size-1.5 rounded-full"
+          style={{ backgroundColor: cfg.color }}
+        /> */}
+      </div>
     </div>
   );
 }
@@ -183,58 +362,181 @@ export function BookingTimeline({
   onBlockClick?: (b: Partial<Booking>) => void;
   readOnly?: boolean;
 }) {
-  return (
-    <div className="overflow-x-auto">
-      <div style={{ minWidth: 860 }}>
-        {/* Time header */}
-        <div className="flex ml-[88px] mb-2">
-          {HOUR_MARKS.map((h) => (
-            <div
-              key={h}
-              className="flex-1 text-[11px] font-mono text-muted-foreground text-center select-none"
-            >
-              {h}
-            </div>
-          ))}
-        </div>
-        {/* Bed rows */}
-        <div className="space-y-2">
-          {Object.values(BedKey).map((bed) => (
-            <div key={bed} className="flex items-center gap-2">
-              <div className="w-[80px] flex-shrink-0 flex justify-center">
-                <Badge
-                  variant="outline"
-                  className="text-[11px] font-medium px-2 py-1"
-                >
-                  Giường {bed}
-                </Badge>
-              </div>
+  //   return (
+  //     <div className="flex overflow-hidden flex-1">
+  //       {/* ── Fixed left: bed labels ─────────────────────────── */}
+  //       {/* Matches your existing w-[80px] flex-shrink-0 */}
+  //       <div className="flex flex-col flex-shrink-0 w-[80px] border-r border-border z-10 bg-background">
+  //         {/* Spacer aligned with time header height */}
+  //         <div className="h-[36px] border-b border-border" />
 
-              <div className="flex-1 relative h-[72px] rounded-lg border border-border bg-secondary/40">
-                {HOUR_MARKS.map((h, i) => (
-                  <div
-                    key={h}
-                    className="absolute top-0 bottom-0 border-l border-border/40"
-                    style={{
-                      left: `${(i / (HOUR_MARKS.length - 1)) * 100}%`,
-                    }}
+  //         {/* Bed label rows */}
+  //         {Object.values(BedKey).map((bed) => (
+  //           <div
+  //             key={bed}
+  //             className="flex items-center justify-center h-[72px] border-b border-border"
+  //           >
+  //             <Badge
+  //               variant="outline"
+  //               className="text-[11px] font-medium px-2 py-1"
+  //             >
+  //               Giường {bed}
+  //             </Badge>
+  //           </div>
+  //         ))}
+  //       </div>
+
+  //       {/* ── Scrollable right: header + grid ───────────────── */}
+  //       <div className="overflow-x-auto flex-1 scrollbar-none">
+  //         <div style={{ width: TOTAL_WIDTH_PX, minWidth: TOTAL_WIDTH_PX }}>
+  //           {/* Time header — pixel-positioned */}
+  //           <div className="relative h-[36px] border-b border-border ml-0">
+  //             {HOUR_MARKS.map((h, i) => (
+  //               <div
+  //                 key={h}
+  //                 className="absolute top-0 bottom-0 flex items-end pb-1"
+  //                 style={{ left: i * HOUR_WIDTH_PX }}
+  //               >
+  //                 <span className="text-[11px] font-mono text-muted-foreground select-none">
+  //                   {h}
+  //                 </span>
+  //               </div>
+  //             ))}
+  //           </div>
+
+  //           {/* Bed rows */}
+  //           <div className="space-y-2">
+  //             {Object.values(BedKey).map((bed) => (
+  //               <div key={bed} className="flex items-center gap-2">
+  //                 {/* Grid row */}
+  //                 <div
+  //                   className="flex-1 relative h-[72px] rounded-lg border border-border bg-secondary/40"
+  //                   style={{ width: TOTAL_WIDTH_PX }}
+  //                 >
+  //                   {/* Hour grid lines — pixel positioned */}
+  //                   {HOUR_MARKS.map((h, i) => (
+  //                     <div
+  //                       key={h}
+  //                       className="absolute top-0 bottom-0 border-l border-border/40"
+  //                       style={{ left: i * HOUR_WIDTH_PX }}
+  //                     />
+  //                   ))}
+
+  //                   {/* Half-hour grid lines */}
+  //                   {HOUR_MARKS.slice(0, -1).map((h, i) => (
+  //                     <div
+  //                       key={`${h}-half`}
+  //                       className="absolute top-0 bottom-0 border-l border-border/20"
+  //                       style={{ left: i * HOUR_WIDTH_PX + HOUR_WIDTH_PX / 2 }}
+  //                     />
+  //                   ))}
+
+  //                   {/* Booking blocks — pixel positioned */}
+  //                   {bookings.length > 0 &&
+  //                     bookings
+  //                       .filter((b) => b.bedKey === bed)
+  //                       .map((b) => {
+  //                         const svc = SERVICES.find((s) => s.id === b.serviceId);
+  //                         if (!svc) return null;
+  //                         return (
+  //                           <div
+  //                             key={b.id ?? `${b.bedKey}-${b.startTime}-${b.date}`}
+  //                             className="absolute top-1 bottom-1"
+  //                             style={{
+  //                               left: timeToLeftPx(b.startTime!), // ← px, not %
+  //                               width: durationToPx(svc.durationMin), // ← px, not %
+  //                             }}
+  //                           >
+  //                             <BookingBlock
+  //                               booking={b}
+  //                               onClick={() => onBlockClick?.(b)}
+  //                               readOnly={readOnly}
+  //                             />
+  //                           </div>
+  //                         );
+  //                       })}
+  //                 </div>
+  //               </div>
+  //             ))}
+  //           </div>
+  //         </div>
+  //       </div>
+  //     </div>
+  //   );
+  return (
+    <div className="flex overflow-hidden flex-1">
+      {/* Fixed left: bed labels */}
+      <div className="flex flex-col flex-shrink-0 w-[80px] border-r border-border z-10 bg-background">
+        <div className="h-[36px] border-b border-border" />
+        {Object.values(BedKey).map((bed) => (
+          <div
+            key={bed}
+            className="flex items-center justify-center h-[72px] border-b border-border"
+          >
+            <Badge
+              variant="outline"
+              className="text-[11px] font-medium px-2 py-1"
+            >
+              Giường {bed}
+            </Badge>
+          </div>
+        ))}
+      </div>
+
+      {/* Scrollable right — min-w-0 is the critical fix */}
+      <div className="overflow-x-auto flex-1 min-w-0 scrollbar-none">
+        <div style={{ width: TOTAL_WIDTH_PX, minWidth: TOTAL_WIDTH_PX }}>
+          {/* Time header */}
+          <div className="relative h-[36px] border-b border-border">
+            {HOUR_MARKS.map((h, i) => (
+              <div
+                key={h}
+                className="absolute top-0 bottom-0 flex items-end pb-1"
+                style={{ left: i * HOUR_WIDTH_PX }}
+              >
+                <span className="text-[11px] font-mono text-muted-foreground select-none">
+                  {h}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {/* Bed rows — no space-y, no flex wrapper per row */}
+          {Object.values(BedKey).map((bed) => (
+            <div
+              key={bed}
+              className="relative h-[72px] border-b border-border bg-secondary/40"
+              style={{ width: TOTAL_WIDTH_PX }}
+            >
+              {/* Hour grid lines */}
+              {HOUR_MARKS.map((h, i) => (
+                <div
+                  key={h}
+                  className="absolute top-0 bottom-0 border-l border-border/40"
+                  style={{ left: i * HOUR_WIDTH_PX }}
+                />
+              ))}
+
+              {/* Half-hour grid lines */}
+              {HOUR_MARKS.slice(0, -1).map((h, i) => (
+                <div
+                  key={`${h}-half`}
+                  className="absolute top-0 bottom-0 border-l border-border/20"
+                  style={{ left: i * HOUR_WIDTH_PX + HOUR_WIDTH_PX / 2 }}
+                />
+              ))}
+
+              {/* Booking blocks */}
+              {bookings
+                .filter((b) => b.bedKey === bed)
+                .map((b) => (
+                  <BookingBlock
+                    key={b.id ?? `${b.bedKey}-${b.startTime}-${b.date}`}
+                    booking={b}
+                    onClick={() => onBlockClick?.(b)}
+                    readOnly={readOnly}
                   />
                 ))}
-                {bookings.length > 0 &&
-                  bookings
-                    .filter((b) => b.bedKey === bed)
-                    .map((b) => {
-                      return (
-                        <BookingBlock
-                          //   key={b.id}
-                          key={b.id ?? `${b.bedKey}-${b.startTime}-${b.date}`}
-                          booking={b}
-                          onClick={() => onBlockClick?.(b)}
-                          readOnly={readOnly}
-                        />
-                      );
-                    })}
-              </div>
             </div>
           ))}
         </div>

@@ -1,5 +1,5 @@
 import { Booking } from '@/types/booking';
-import { TIMELINE_START_MIN } from '@/constants/time';
+import { TIMELINE_START_MIN, HOUR_WIDTH_PX } from '@/constants/time';
 import { SERVICES } from '@/constants/config';
 import { isSameDay } from 'date-fns';
 
@@ -43,19 +43,18 @@ export const TIME_SLOTS: string[] = Array.from(
   { length: (12 * 60) / 5 + 1 },
   (_, i) => minToTime(TIMELINE_START_MIN + i * 5)
 );
-
-export const HOUR_MARKS: string[] = Array.from({ length: 13 }, (_, i) =>
+export const HOUR_MARKS: string[] = Array.from({ length: 15 }, (_, i) =>
   minToTime(TIMELINE_START_MIN + i * 60)
 );
 
-export function convertTimeToPM(time24h: string) {
+export function convertTimeToPM(time24h: string, delimiter: string = 'h') {
   // Split the string into hours and minutes
   const [hours24, minutes] = time24h.split(':').map(Number);
 
   // Convert to 12-hour format
   const hours12 = hours24 % 12 || 12;
 
-  return `${hours12}h${minutes}`;
+  return `${hours12}${delimiter}${minutes}`;
 }
 
 export function addMinutesToTime(startTime: string, durationMinutes: number) {
@@ -91,4 +90,16 @@ export function getDateWithOffset(date: Date, offsetMins: number) {
 
 export function compareDateString(d1: Date, d2: Date) {
   return d1.toLocaleDateString('en-CA') === d2.toLocaleDateString('en-CA');
+}
+
+/** TIMELINE */
+
+// 'HH:MM' → absolute px left offset from 08:00
+export function timeToLeftPx(time: string): number {
+  return ((timeToMin(time) - TIMELINE_START_MIN) / 60) * HOUR_WIDTH_PX;
+}
+
+// duration in minutes → width in px
+export function durationToPx(durationMin: number): number {
+  return (durationMin / 60) * HOUR_WIDTH_PX;
 }
