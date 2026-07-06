@@ -833,10 +833,8 @@ export function Scheduler({
         if (b.status !== derived) {
           b.status = derived;
           freshBookings.push(b);
-          return true;
         } else {
           oldBookings.push(b);
-          return false;
         }
       }
 
