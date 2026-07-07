@@ -1,5 +1,5 @@
 'use server';
-import { cacheLife, cacheTag, updateTag } from 'next/cache';
+import { cacheLife, cacheTag, updateTag, revalidateTag } from 'next/cache';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { createClient } from '../supabase/server';
 import { createAdminClient } from '../supabase/admin';
@@ -10,6 +10,7 @@ import { toSnake, toCamel, transformDataInput } from '@/utils/common';
 import {
   transformBookingInput,
   transformBookingOutput,
+  bookingDateTag,
 } from '@/utils/bookings';
 
 export async function findBookingById(id: string) {
@@ -30,12 +31,17 @@ export async function findBookingById(id: string) {
 export async function findBookingsByDate(date: Date) {
   'use cache';
   //   cacheLife('hours');
+  //   cacheLife({
+  //     stale: 3600, // 1 hour until considered stale
+  //     revalidate: 7200, // 2 hours until revalidated
+  //     expire: 43200, // 12 hours until expired
+  //   });
   cacheLife({
-    stale: 3600, // 1 hour until considered stale
-    revalidate: 7200, // 2 hours until revalidated
-    expire: 43200, // 12 hours until expired
+    stale: 60,
+    revalidate: 120, // 2 hours until revalidated
+    expire: 3600, // 12 hours until expired
   });
-  cacheTag(CACHE_TAG.BOOKINGS_BY_DATE);
+  cacheTag(bookingDateTag(date));
   const bookingDate = date.toLocaleDateString('en-CA');
 
   const supabase: SupabaseClient = createAdminClient();
@@ -103,7 +109,8 @@ export async function upsertBooking(
   // transmuting
   const booking = toSnake(transformBookingInput(payload, tzOffsetMins));
 
-  const supabase = await createClient();
+  //   const supabase = await createClient();
+  const supabase: SupabaseClient = createAdminClient();
   const { data, error } = await supabase
     .from(TABLE_NAMES.BOOKINGS)
     .upsert(booking)
@@ -112,7 +119,8 @@ export async function upsertBooking(
   console.log('=========== db error ', error);
   if (error) throw error;
 
-  updateTag(CACHE_TAG.BOOKINGS_BY_DATE);
+  //   updateTag(CACHE_TAG.BOOKINGS_BY_DATE);
+  revalidateTag(bookingDateTag(new Date(payload.date!)), 'minutes');
 
   // transmuting
   //   return transformBookingOutput(toCamel<Booking>(data));

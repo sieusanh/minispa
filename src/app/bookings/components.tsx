@@ -1126,38 +1126,65 @@ export function Scheduler({
 
   // Refresh booking status automatically
   // Interval reads from ref — always current, never stale
+  //   useEffect(() => {
+  //     const id = setInterval(() => {
+  //       const now = new Date();
+  //       const curBookings = [...bookingsRef.current];
+  //       const oldBookings: Partial<Booking>[] = [];
+  //       const freshBookings: Partial<Booking>[] = [];
+  //       for (const b of curBookings) {
+  //         const derived = deriveStatus(b, now);
+  //         if (b.status !== derived) {
+  //           b.status = derived;
+  //           freshBookings.push(b);
+  //         } else {
+  //           oldBookings.push(b);
+  //         }
+  //       }
+
+  //       if (freshBookings?.length > 0) {
+  //         startSaving(async () => {
+  //           await bulkUpdateBooking(freshBookings);
+  //           setBookings([...oldBookings, ...freshBookings]);
+  //         });
+  //       }
+  //       //   setBookings(freshBookings);
+  //     }, REFRESH_INTERVAL_MS);
+  //     return () => clearInterval(id); // cleanup on unmount
+  //   }, []);
   useEffect(() => {
     const id = setInterval(() => {
       const now = new Date();
-      const curBookings = [...bookingsRef.current];
-      const oldBookings: Partial<Booking>[] = [];
-      const freshBookings: Partial<Booking>[] = [];
-      for (const b of curBookings) {
-        const derived = deriveStatus(b, now);
-        if (b.status !== derived) {
-          b.status = derived;
-          freshBookings.push(b);
-        } else {
-          oldBookings.push(b);
-        }
-      }
+      let hasChanged = false;
 
-      if (freshBookings?.length > 0) {
-        startSaving(async () => {
-          await bulkUpdateBooking(freshBookings);
-          setBookings([...oldBookings, ...freshBookings]);
-        });
+      const updated = bookingsRef.current.map((b) => {
+        const derived = deriveStatus(b, now);
+        if (b.status === derived) return b; // ← same object reference, no change
+        hasChanged = true;
+        return { ...b, status: derived }; // ← immutable update, new object
+      });
+
+      if (hasChanged) {
+        setBookings(updated); // ← local state only, no server call
       }
-      //   setBookings(freshBookings);
     }, REFRESH_INTERVAL_MS);
-    return () => clearInterval(id); // cleanup on unmount
+
+    return () => clearInterval(id);
   }, []);
 
   function handleDateChange(newDate: Date) {
     setDate(newDate);
     startNavigation(async () => {
       const fresh = await findBookingsByDate(newDate);
-      setBookings(fresh);
+
+      // Re-derive status on arrival so cache staleness doesn't matter
+      const now = new Date();
+      const withDerivedStatus = fresh.map((b) => ({
+        ...b,
+        status: deriveStatus(b, now), // ← override cached status with derived
+      }));
+
+      setBookings(withDerivedStatus);
     });
   }
 

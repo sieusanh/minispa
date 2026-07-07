@@ -1,5 +1,6 @@
 import { type Booking, BookingStatus } from '@/types';
 import { SERVICES } from '@/constants/config';
+import { CACHE_TAG } from '@/constants/cache';
 import { addMinutesToTime, getDateWithOffset } from '@/utils/time';
 
 export function deriveStatus(
@@ -40,3 +41,6 @@ export function transformBookingOutput(data: Partial<Booking>) {
   data.date = new Date(data.date!);
   return data;
 }
+
+export const bookingDateTag = (date: Date) =>
+  `${CACHE_TAG.BOOKINGS_BY_DATE}-${date.toLocaleDateString('en-CA')}`;
