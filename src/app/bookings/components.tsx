@@ -289,7 +289,7 @@ export function BookingBlock({
 
   return (
     <div
-      key={id ?? `${bedKey}-${startTime}-${date}`}
+      //   key={id ?? `${bedKey}-${startTime}-${date}`}
       className="absolute top-1 bottom-1"
       style={{
         left: timeToLeftPx(startTime!),
@@ -1177,13 +1177,13 @@ export function Scheduler({
   function handleSaveCreate(d: Partial<Booking>) {
     startSaving(async () => {
       const offsetMins = new Date().getTimezoneOffset();
-      await upsertBooking(d, offsetMins);
+      const { id } = await upsertBooking(d, offsetMins);
 
       if (!compareDateString(d.date!, date)) {
         return;
       }
 
-      setBookings((prev) => [...prev, d]);
+      setBookings((prev) => [...prev, { id, ...d }]);
     });
   }
 
