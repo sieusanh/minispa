@@ -60,7 +60,7 @@ import {
 import { formatPrice } from '@/utils/price';
 import { Booking, BookingStatus, Staff, BedKey } from '@/types';
 import { cn } from '@/utils/common';
-import { deriveStatus } from '@/utils/bookings';
+import { deriveStatus, runRealtimeBookings } from '@/utils/bookings';
 import { TODAY, REFRESH_INTERVAL_MS } from '@/constants/config';
 import { ChevronLeft, ChevronRight, Plus, LoaderCircle } from 'lucide-react';
 import {
@@ -646,6 +646,7 @@ export function BookingDrawer({
             <Field label="Dịch vụ *" error={errs.serviceId}>
               <Select
                 value={form.serviceId}
+                // defaultValue={SERVICES[2]?.id}
                 onValueChange={(v) => {
                   upd('serviceId', v);
                   const price = SERVICES.find((s) => s.id === v)!.priceVnd;
@@ -692,7 +693,7 @@ export function BookingDrawer({
             />
 
             <Field label="Giờ bắt đầu *">
-              <Select
+              {/* <Select
                 value={form.startTime}
                 onValueChange={(v) => upd('startTime', v)}
               >
@@ -706,7 +707,30 @@ export function BookingDrawer({
                     </SelectItem>
                   ))}
                 </SelectContent>
-              </Select>
+              </Select> */}
+              <Input
+                className="max-w-sm"
+                // type="number"
+                type="time"
+                // min="8"
+                // max="21"
+                // placeholder="09:00"
+                // value={`${form.startTime!.split(':')[0]}:${form.startTime!.split(':')[1]}`}
+                value={form.startTime}
+                onChange={(e) => upd('startTime', e.target.value)}
+                required
+              />
+              {/* <span>:</span>
+              <Input
+                className="max-w-sm"
+                type="number"
+                min="0"
+                max="59"
+                placeholder=""
+                value={form.startTime!.split(':')[1]}
+                onChange={(e) => upd('customerName', e.target.value)}
+                required
+              /> */}
             </Field>
 
             <Field label="Kỹ thuật viên *" error={errs.staffId}>
@@ -939,21 +963,13 @@ export function BookingEditDrawer({
             />
 
             <Field label="Giờ bắt đầu *">
-              <Select
+              <Input
+                className="max-w-sm"
+                type="time"
                 value={form.startTime}
-                onValueChange={(v) => upd('startTime', v)}
-              >
-                <SelectTrigger className="font-mono">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {TIME_SLOTS.map((t) => (
-                    <SelectItem key={t} value={t} className="font-mono">
-                      {t}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                onChange={(e) => upd('startTime', e.target.value)}
+                required
+              />
             </Field>
 
             <Field label="Kỹ thuật viên *" error={errs.staffId}>
@@ -1119,6 +1135,37 @@ export function Scheduler({
   const [isDeleting, startDeleting] = useTransition();
   const bookingsRef = useRef(bookings);
 
+  useEffect(() => {
+    const { supabase, channel } = runRealtimeBookings(
+      date,
+
+      // INSERT — add new block to timeline instantly
+      (newBooking) => {
+        setBookings((prev) => {
+          // Prevent duplicate if local upsert already added it
+          const exists = prev.some((b) => b.id === newBooking.id);
+          return exists ? prev : [...prev, newBooking];
+        });
+      },
+
+      // UPDATE — replace existing block
+      (updatedBooking) => {
+        setBookings((prev) =>
+          prev.map((b) => (b.id === updatedBooking.id ? updatedBooking : b))
+        );
+      },
+
+      // DELETE — remove block
+      (deletedId) => {
+        setBookings((prev) => prev.filter((b) => b.id !== deletedId));
+      }
+    );
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [date]);
+
   //   Keep ref in sync with state on every render
   useEffect(() => {
     bookingsRef.current = bookings;
@@ -1126,32 +1173,6 @@ export function Scheduler({
 
   // Refresh booking status automatically
   // Interval reads from ref — always current, never stale
-  //   useEffect(() => {
-  //     const id = setInterval(() => {
-  //       const now = new Date();
-  //       const curBookings = [...bookingsRef.current];
-  //       const oldBookings: Partial<Booking>[] = [];
-  //       const freshBookings: Partial<Booking>[] = [];
-  //       for (const b of curBookings) {
-  //         const derived = deriveStatus(b, now);
-  //         if (b.status !== derived) {
-  //           b.status = derived;
-  //           freshBookings.push(b);
-  //         } else {
-  //           oldBookings.push(b);
-  //         }
-  //       }
-
-  //       if (freshBookings?.length > 0) {
-  //         startSaving(async () => {
-  //           await bulkUpdateBooking(freshBookings);
-  //           setBookings([...oldBookings, ...freshBookings]);
-  //         });
-  //       }
-  //       //   setBookings(freshBookings);
-  //     }, REFRESH_INTERVAL_MS);
-  //     return () => clearInterval(id); // cleanup on unmount
-  //   }, []);
   useEffect(() => {
     const id = setInterval(() => {
       const now = new Date();
