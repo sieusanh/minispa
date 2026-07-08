@@ -6,6 +6,7 @@ import {
   BookingStatus,
   BedKey,
 } from '@/types';
+
 // import { format } from 'date-fns';
 
 // export const TODAY: string = format(new Date(), 'yyyy-MM-dd');
@@ -152,14 +153,14 @@ export function durCfg(d: Durability) {
 export const EMPTY_DRAFT: Booking = {
   customerName: '',
   //   phone: '',
-  serviceId: '',
+  serviceId: SERVICES[2].id!,
   bedKey: BedKey.BED_1,
   date: TODAY,
   startTime: '09:00',
-  staffId: '',
+  staffId: 'aceb5a56-65f8-453c-a59d-f440971c1043',
   note: '',
   status: BookingStatus.OPEN,
-  price: 0,
+  price: 90,
   notified: false,
 };
 
