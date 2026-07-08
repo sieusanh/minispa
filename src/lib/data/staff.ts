@@ -25,12 +25,12 @@ export async function findStaffById(id: string) {
 }
 
 export async function findAllStaff() {
-  'use cache';
-  cacheLife({
-    stale: 3600, // 1 hour until considered stale
-    revalidate: 7200, // 2 hours until revalidated
-    expire: 43200, // 12 hours until expired
-  });
+  //   'use cache';
+  //   cacheLife({
+  //     stale: 3600, // 1 hour until considered stale
+  //     revalidate: 7200, // 2 hours until revalidated
+  //     expire: 43200, // 12 hours until expired
+  //   });
   const supabase: SupabaseClient = createAdminClient();
   const { data, error } = await supabase.from(TABLE_NAMES.STAFF).select('*');
 

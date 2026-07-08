@@ -3,7 +3,7 @@ import withBundleAnalyzer from '@next/bundle-analyzer';
 
 const nextConfig: NextConfig = {
   /* config options here */
-  cacheComponents: true,
+  //   cacheComponents: true,
 };
 
 // export default nextConfig;

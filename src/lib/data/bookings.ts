@@ -1,7 +1,8 @@
 'use server';
 import { cacheLife, cacheTag, updateTag, revalidateTag } from 'next/cache';
-import { SupabaseClient } from '@supabase/supabase-js';
-import { createClient } from '../supabase/server';
+import { SupabaseClient, RealtimeChannel } from '@supabase/supabase-js';
+import { createClient as createServerClient } from '../supabase/server';
+import { createClient } from '../supabase/client';
 import { createAdminClient } from '../supabase/admin';
 import { TABLE_NAMES } from '@/constants/config';
 import { CACHE_TAG } from '@/constants/cache';
@@ -11,10 +12,11 @@ import {
   transformBookingInput,
   transformBookingOutput,
   bookingDateTag,
+  deriveStatus,
 } from '@/utils/bookings';
 
 export async function findBookingById(id: string) {
-  const supabase: SupabaseClient = await createClient();
+  const supabase: SupabaseClient = await createServerClient();
   const { data, error } = await supabase
     .from(TABLE_NAMES.BOOKINGS)
     .select('*')
@@ -29,19 +31,19 @@ export async function findBookingById(id: string) {
 }
 
 export async function findBookingsByDate(date: Date) {
-  'use cache';
+  //   'use cache';
   //   cacheLife('hours');
   //   cacheLife({
   //     stale: 3600, // 1 hour until considered stale
   //     revalidate: 7200, // 2 hours until revalidated
   //     expire: 43200, // 12 hours until expired
   //   });
-  cacheLife({
-    stale: 60,
-    revalidate: 120, // 2 hours until revalidated
-    expire: 3600, // 12 hours until expired
-  });
-  cacheTag(bookingDateTag(date));
+  //   cacheLife({
+  //     stale: 60,
+  //     revalidate: 120, // 2 hours until revalidated
+  //     expire: 3600, // 12 hours until expired
+  //   });
+  //   cacheTag(bookingDateTag(date));
   const bookingDate = date.toLocaleDateString('en-CA');
 
   const supabase: SupabaseClient = createAdminClient();
@@ -71,7 +73,7 @@ export async function findAllBookings(params: Partial<FindParams>) {
 
   const todayEnd = new Date();
   todayEnd.setHours(23, 55, 59, 999); // Final millisecond of the day
-  const supabase: SupabaseClient = await createClient();
+  const supabase: SupabaseClient = await createServerClient();
   const { data, error } = await supabase.from(TABLE_NAMES.BOOKINGS).select('*');
   // .single();
 
@@ -89,7 +91,7 @@ export async function findAllBookings(params: Partial<FindParams>) {
 export async function insertBooking(payload: Booking) {
   // transmuting
   const booking = toSnake(transformDataInput(payload));
-  const supabase = await createClient();
+  const supabase = await createServerClient();
   const { data, error } = await supabase
     .from(TABLE_NAMES.BOOKINGS)
     .insert(booking)
@@ -120,7 +122,7 @@ export async function upsertBooking(
   if (error) throw error;
 
   //   updateTag(CACHE_TAG.BOOKINGS_BY_DATE);
-  revalidateTag(bookingDateTag(new Date(payload.date!)), 'minutes');
+  //   revalidateTag(bookingDateTag(new Date(payload.date!)), 'minutes');
 
   // transmuting
   //   return transformBookingOutput(toCamel<Booking>(data));
@@ -133,7 +135,7 @@ export async function bulkUpdateBooking(payload: Partial<Booking>[]) {
   const list: Array<Partial<Booking>> =
     payload.map((d: Partial<Booking>) => toSnake<Partial<Booking>>(d)) || [];
 
-  const supabase = await createClient();
+  const supabase = await createServerClient();
   const { data, error } = await supabase
     .from(TABLE_NAMES.BOOKINGS)
     .upsert(list)
@@ -141,7 +143,8 @@ export async function bulkUpdateBooking(payload: Partial<Booking>[]) {
 
   if (error) throw error;
 
-  updateTag(CACHE_TAG.BOOKINGS_BY_DATE);
+  //   updateTag(CACHE_TAG.BOOKINGS_BY_DATE);
+  //   revalidateTag(bookingDateTag(new Date(payload[0].date!)), 'minutes');
 
   // transmuting
   const res: Partial<Booking>[] =
@@ -156,7 +159,7 @@ export async function updateBookingById(id: string, payload: Partial<Booking>) {
   // transmuting
   const booking = toSnake(payload);
 
-  const supabase = await createClient();
+  const supabase = await createServerClient();
   const { data, error } = await supabase
     .from(TABLE_NAMES.BOOKINGS)
     .update(booking)
@@ -173,7 +176,7 @@ export async function updateBookingById(id: string, payload: Partial<Booking>) {
 }
 
 export async function softDeleteBookingById(id: string) {
-  const supabase = await createClient();
+  const supabase = await createServerClient();
   const { data, error } = await supabase
     .from(TABLE_NAMES.BOOKINGS)
     .update({ is_active: false, status: BookingStatus.CANCELLED })
@@ -189,7 +192,7 @@ export async function softDeleteBookingById(id: string) {
 }
 
 export async function hardDeleteBookingById(id: string) {
-  const supabase = await createClient();
+  const supabase = await createServerClient();
   const { error } = await supabase
     .from(TABLE_NAMES.BOOKINGS)
     .delete()
