@@ -14,6 +14,12 @@ export interface Staff extends IBase {
   revenueShareRate: number;
   currentMonthRevenue: number;
   review?: string;
+  username: string;
+  password: string;
 }
 
 // export type StaffRecord = Record<keyof Staff, Staff[keyof Staff]>;
+export interface LoginPayload {
+  username: string;
+  password: string;
+}

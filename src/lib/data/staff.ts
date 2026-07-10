@@ -5,10 +5,13 @@ import { cacheLife } from 'next/cache';
 import { createClient } from '../supabase/server';
 import { createAdminClient } from '../supabase/admin';
 import { TABLE_NAMES } from '@/constants/config';
-import { Staff } from '@/types';
+import { Staff, LoginPayload } from '@/types';
 import { toSnake, toCamel } from '@/utils/common';
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 // import type { Staff } from '@/types'
 // import { type Staff } from './modules';
+import { signToken } from '@/utils/auth';
 
 export async function findStaffById(id: string) {
   const supabase: SupabaseClient = await createClient();
@@ -32,13 +35,17 @@ export async function findAllStaff() {
   //     expire: 43200, // 12 hours until expired
   //   });
   const supabase: SupabaseClient = createAdminClient();
-  const { data, error } = await supabase.from(TABLE_NAMES.STAFF).select('*');
+  const { data, error } = await supabase
+    .from(TABLE_NAMES.STAFF)
+    .select('*')
+    .eq('is_active', true);
 
   if (error) throw error;
 
   // transmuting
   const list: Array<Partial<Staff>> =
-    data.map((d: Staff) => toCamel<Staff>(d) as Partial<Staff>) || [];
+    data.map((d: Partial<Staff>) => toCamel<Staff>(d)) || [];
+  // as Partial<Staff>) || [];
 
   return list;
 }
@@ -117,4 +124,65 @@ export async function hardDeleteStaffById(id: string) {
     .eq('id', id);
 
   if (error) throw error;
+}
+
+// Authentication
+export async function loginAction(loginPayload: LoginPayload) {
+  const { username, password } = loginPayload;
+
+  if (!username && !password) {
+    throw Error('Nhập thông tin đăng nhập.');
+  }
+
+  if (!username) {
+    throw Error('Nhập username.');
+  }
+
+  if (!password) {
+    throw Error('Nhập mật khẩu.');
+  }
+
+  const supabase: SupabaseClient = createAdminClient();
+  const { data: account, error } = await supabase
+    .from(TABLE_NAMES.STAFF)
+    .select('*')
+    .eq('username', username)
+    .eq('is_active', true)
+    .maybeSingle();
+
+  if (error) {
+    console.log('========== loginAction error: ', error);
+    throw error;
+  }
+
+  if (!account) {
+    throw Error('username không tồn tại.');
+  }
+
+  if (password !== account.password) {
+    throw Error('Mật khẩu không đúng.');
+  }
+
+  // Generate access token
+  const jwtPayload: Partial<Staff> = {
+    id: account.id,
+    name: account.name,
+    role: account.role,
+    username,
+  };
+
+  try {
+    const accessToken: string = await signToken(jwtPayload);
+
+    return accessToken;
+  } catch (err) {
+    console.log('========= signToken error ', err);
+    throw err;
+  }
+}
+
+export async function logoutAction() {
+  const cookieStore = await cookies();
+  cookieStore.delete('access_token');
+  redirect('/login');
 }

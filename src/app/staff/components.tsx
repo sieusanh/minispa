@@ -48,16 +48,23 @@ import {
 } from '@/components/ui/select';
 import { upsertStaff, softDeleteStaffById } from '@/lib/data/staff';
 
-export function Staff({
+export function StaffBoard({
   staffPromise,
+  userId,
+  userRole,
+  userName,
 }: {
-  staffPromise: Promise<Partial<Staff>[]>;
+  staffPromise: Promise<Partial<Staff>[] | Partial<Staff>>;
+  userId: string;
+  userRole: string;
+  userName: string;
 }) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<boolean>(false);
   const [form, setForm] = useState<Partial<Staff>>({});
   const [delId, setDelId] = useState<string | null>(null);
-  const staff = use(staffPromise);
+  const staffRes = use(staffPromise);
+  const staff = Array.isArray(staffRes) ? staffRes : [staffRes];
 
   function openCreate() {
     setEditing(false);
