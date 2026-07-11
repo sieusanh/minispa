@@ -58,7 +58,7 @@ import {
   durationToPx,
 } from '@/utils/time';
 import { formatPrice } from '@/utils/price';
-import { Booking, BookingStatus, Staff, BedKey } from '@/types';
+import { Booking, BookingStatus, Staff, BedKey, UserRole } from '@/types';
 import { cn } from '@/utils/common';
 import { deriveStatus, runRealtimeBookings } from '@/utils/bookings';
 import { TODAY, REFRESH_INTERVAL_MS } from '@/constants/config';
@@ -74,10 +74,12 @@ export function DatePickerField({
   value,
   onChange,
   label,
+  disabled,
 }: {
   value: Date | undefined;
   onChange: (d: Date) => void;
   label?: string;
+  disabled?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   return (
@@ -85,9 +87,22 @@ export function DatePickerField({
       {label && (
         <label className="text-sm font-medium text-foreground">{label}</label>
       )}
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover
+        open={disabled ? false : open}
+        onOpenChange={disabled ? undefined : setOpen}
+      >
+        {/* <Popover open={open} onOpenChange={setOpen}> */}
         <PopoverTrigger asChild>
-          <button className="flex items-center gap-2 w-full rounded-md border border-input bg-input-background px-3 h-9 text-sm text-foreground hover:bg-secondary/60 transition-colors text-left">
+          <button
+            type="button"
+            disabled={disabled}
+            aria-disabled={disabled}
+            className={cn(
+              'flex items-center gap-2 w-full rounded-md border border-input bg-input-background px-3 h-9 text-sm text-foreground hover:bg-secondary/60 transition-colors text-left',
+              disabled &&
+                'cursor-not-allowed opacity-50 hover:bg-input-background'
+            )}
+          >
             <Calendar className="size-4 text-muted-foreground flex-shrink-0" />
             {value ? (
               format(value, 'dd/MM/yyyy', { locale: vi })
@@ -555,6 +570,7 @@ export function BookingDrawer({
   onSave,
   isSaving,
   date,
+  readOnly,
 }: {
   open: boolean;
   onClose: () => void;
@@ -563,6 +579,7 @@ export function BookingDrawer({
   onSave: (d: Partial<Booking>) => void;
   isSaving: boolean;
   date: Date;
+  readOnly: boolean;
 }) {
   EMPTY_DRAFT.date = date;
   const [form, setForm] = useState<Partial<Booking>>(EMPTY_DRAFT);
@@ -627,9 +644,14 @@ export function BookingDrawer({
               </div>
             )}
 
-            <Field label="Tên khách hàng *" error={errs.customerName}>
+            <Field
+              label="Tên khách hàng *"
+              error={errs.customerName}
+              readOnly={readOnly}
+            >
               <Input
                 value={form.customerName}
+                readOnly={readOnly}
                 onChange={(e) => upd('customerName', e.target.value)}
                 placeholder=""
               />
@@ -652,6 +674,7 @@ export function BookingDrawer({
                   const price = SERVICES.find((s) => s.id === v)!.priceVnd;
                   upd('price', price);
                 }}
+                disabled={readOnly}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Chọn dịch vụ..." />
@@ -672,6 +695,7 @@ export function BookingDrawer({
                 value={form.bedKey}
                 onValueChange={(v: BedKey) => v && upd('bedKey', v)}
                 className="w-full"
+                disabled={readOnly}
               >
                 {Object.values(BedKey).map((b) => (
                   <ToggleGroupItem
@@ -688,8 +712,10 @@ export function BookingDrawer({
 
             <DatePickerField
               label="Ngày *"
-              value={form.date || date}
+              //   value={date || form.date!}
+              value={form.date! || date}
               onChange={(d) => upd('date', d || date)}
+              disabled={readOnly}
             />
 
             <Field label="Giờ bắt đầu *">
@@ -719,6 +745,7 @@ export function BookingDrawer({
                 value={form.startTime}
                 onChange={(e) => upd('startTime', e.target.value)}
                 required
+                readOnly={readOnly}
               />
               {/* <span>:</span>
               <Input
@@ -736,6 +763,7 @@ export function BookingDrawer({
             <Field label="Kỹ thuật viên *" error={errs.staffId}>
               <Select
                 value={form.staffId}
+                disabled={readOnly}
                 onValueChange={(v) => {
                   const staffId = v || ADMIN.id;
                   const staffName =
@@ -752,7 +780,7 @@ export function BookingDrawer({
                 <SelectContent>
                   {staff.map((s) => (
                     <SelectItem key={s.id} value={s.id!}>
-                      {s.name} ({s.revenueShareRate}%)
+                      {s.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -766,13 +794,19 @@ export function BookingDrawer({
                 value={form.note}
                 onChange={(e) => upd('note', e.target.value)}
                 placeholder="Khách thích nước ấm..."
+                readOnly={readOnly}
               />
             </Field>
           </div>
 
           <SheetFooter className="px-5 py-4 border-t border-border flex-row items-center gap-2">
             {/* <Button variant="outline" size="sm" onClick={onClose}> */}
-            <Button variant="outline" size="sm" onClick={handleClose}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleClose}
+              readOnly={readOnly}
+            >
               Hủy
             </Button>
             <Button
@@ -780,6 +814,7 @@ export function BookingDrawer({
               onClick={handleSave}
               className="bg-primary text-primary-foreground hover:bg-primary/90"
               disabled={isSaving}
+              readOnly={readOnly}
             >
               {isSaving ? (
                 <LoaderCircle className="size-4 animate-spin" />
@@ -806,6 +841,7 @@ export function BookingEditDrawer({
   isSaving,
   onDelete,
   isDeleting,
+  readOnly,
 }: {
   open: boolean;
   onClose: () => void;
@@ -816,6 +852,7 @@ export function BookingEditDrawer({
   isSaving: boolean;
   onDelete: (id: string) => void;
   isDeleting: boolean;
+  readOnly: boolean;
 }) {
   //   const [form, setForm] = useState<Partial<Booking>>(
   //     open ? booking : EMPTY_DRAFT
@@ -901,6 +938,7 @@ export function BookingEditDrawer({
             <Field label="Tên khách hàng *" error={errs.customerName}>
               <Input
                 value={form.customerName}
+                readOnly={readOnly}
                 onChange={(e) => upd('customerName', e.target.value)}
                 placeholder=""
               />
@@ -922,6 +960,7 @@ export function BookingEditDrawer({
                   const price = SERVICES.find((s) => s.id === v)!.priceVnd;
                   upd('price', price);
                 }}
+                disabled={readOnly}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Chọn dịch vụ..." />
@@ -942,6 +981,7 @@ export function BookingEditDrawer({
                 value={form.bedKey}
                 onValueChange={(v: BedKey) => v && upd('bedKey', v)}
                 className="w-full"
+                disabled={readOnly}
               >
                 {Object.values(BedKey).map((b) => (
                   <ToggleGroupItem
@@ -960,6 +1000,7 @@ export function BookingEditDrawer({
               label="Ngày *"
               value={form.date!}
               onChange={(d) => upd('date', d)}
+              disabled={readOnly}
             />
 
             <Field label="Giờ bắt đầu *">
@@ -969,12 +1010,14 @@ export function BookingEditDrawer({
                 value={form.startTime}
                 onChange={(e) => upd('startTime', e.target.value)}
                 required
+                readOnly={readOnly}
               />
             </Field>
 
             <Field label="Kỹ thuật viên *" error={errs.staffId}>
               <Select
                 value={form.staffId}
+                disabled={readOnly}
                 onValueChange={(v) => {
                   const staffId = v || ADMIN.id;
                   const staffName =
@@ -990,16 +1033,17 @@ export function BookingEditDrawer({
                 <SelectContent>
                   {staff.map((s) => (
                     <SelectItem key={s.id} value={s.id!}>
-                      {s.name} ({s.revenueShareRate}%)
+                      {s.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </Field>
 
-            <Field label="Trạng thái">
+            <Field label="Trạng thái" readOnly={readOnly}>
               <Select
                 value={form.status}
+                disabled={readOnly}
                 onValueChange={(v) => upd('status', v as BookingStatus)}
               >
                 <SelectTrigger>
@@ -1026,6 +1070,7 @@ export function BookingEditDrawer({
                 value={form.note}
                 onChange={(e) => upd('note', e.target.value)}
                 placeholder="Khách thích nước ấm..."
+                readOnly={readOnly}
               />
             </Field>
 
@@ -1054,12 +1099,18 @@ export function BookingEditDrawer({
               size="sm"
               className="text-destructive hover:text-destructive hover:bg-destructive/10 mr-auto"
               onClick={() => setDelOpen(true)}
+              readOnly={readOnly}
             >
               <Trash2 className="size-3.5" /> Xoá
             </Button>
 
             {/* <Button variant="outline" size="sm" onClick={onClose}> */}
-            <Button variant="outline" size="sm" onClick={handleClose}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleClose}
+              readOnly={readOnly}
+            >
               Hủy
             </Button>
             <Button
@@ -1067,6 +1118,7 @@ export function BookingEditDrawer({
               onClick={handleSave}
               className="bg-primary text-primary-foreground hover:bg-primary/90"
               disabled={isSaving}
+              readOnly={readOnly}
             >
               {isSaving ? (
                 <LoaderCircle className="size-4 animate-spin" />
@@ -1118,9 +1170,13 @@ export function BookingEditDrawer({
 export function Scheduler({
   staffPromise,
   bookingsPromise,
+  userId,
+  userRole,
 }: {
   staffPromise: Promise<Partial<Staff>[]>;
   bookingsPromise: Promise<Partial<Booking>[]>;
+  userId: string;
+  userRole: UserRole;
 }) {
   const staff = use(staffPromise);
   const todayBooking = use(bookingsPromise);
@@ -1134,6 +1190,8 @@ export function Scheduler({
   const [isSaving, startSaving] = useTransition();
   const [isDeleting, startDeleting] = useTransition();
   const bookingsRef = useRef(bookings);
+  const readOnly = userRole !== UserRole.ADMIN;
+  console.log('========= Scheduler readOnly ', readOnly);
 
   useEffect(() => {
     const { supabase, channel } = runRealtimeBookings(
@@ -1196,7 +1254,7 @@ export function Scheduler({
   function handleDateChange(newDate: Date) {
     setDate(newDate);
     startNavigation(async () => {
-      const fresh = await findBookingsByDate(newDate);
+      const fresh = await findBookingsByDate(newDate, userId);
 
       // Re-derive status on arrival so cache staleness doesn't matter
       const now = new Date();
@@ -1287,6 +1345,7 @@ export function Scheduler({
           size="sm"
           onClick={() => setCreateOpen(true)}
           className="bg-primary text-primary-foreground hover:bg-primary/90"
+          readOnly={readOnly}
         >
           <Plus className="size-4" /> Đặt lịch mới
         </Button>
@@ -1317,6 +1376,7 @@ export function Scheduler({
         onSave={handleSaveCreate}
         isSaving={isSaving}
         date={date}
+        readOnly={readOnly}
       />
       <BookingEditDrawer
         // key={active.id ?? 'new'}
@@ -1330,6 +1390,7 @@ export function Scheduler({
         isSaving={isSaving}
         onDelete={handleDelete}
         isDeleting={isDeleting}
+        readOnly={readOnly}
       />
     </div>
   );

@@ -17,7 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Field } from '@/components/ui/field';
 import { SERVICES } from '@/constants/config';
 // import { Staff } from '@/types';
-import { type Staff } from '@/types';
+import { type Staff, UserRole } from '@/types';
 import { initials } from '@/utils/name';
 import { formatPrice } from '@/utils/price';
 import { format } from 'date-fns';
@@ -63,6 +63,7 @@ export function StaffBoard({
   const [editing, setEditing] = useState<boolean>(false);
   const [form, setForm] = useState<Partial<Staff>>({});
   const [delId, setDelId] = useState<string | null>(null);
+  const [showRevenueRate, setShowRevenueRate] = useState(false);
   const staffRes = use(staffPromise);
   const staff = Array.isArray(staffRes) ? staffRes : [staffRes];
 
@@ -106,6 +107,9 @@ export function StaffBoard({
           size="sm"
           onClick={openCreate}
           className="bg-primary text-primary-foreground hover:bg-primary/90"
+          style={{
+            visibility: userRole === UserRole.ADMIN ? 'visible' : 'hidden',
+          }}
         >
           <Plus className="size-4" /> Thêm nhân viên
         </Button>
@@ -146,8 +150,11 @@ export function StaffBoard({
                       </p>
                     </div>
                   </div>
-                  <Badge className="bg-primary/15 text-primary border-primary/20">
-                    {s.revenueShareRate}%
+                  <Badge
+                    className="bg-primary/15 text-primary border-primary/20"
+                    onClick={() => setShowRevenueRate((prev) => !prev)}
+                  >
+                    {showRevenueRate ? `${s.revenueShareRate}%` : '0%'}
                   </Badge>
                 </div>
 
@@ -182,6 +189,10 @@ export function StaffBoard({
                     size="sm"
                     className="flex-1"
                     onClick={() => openEdit(s)}
+                    style={{
+                      visibility:
+                        userRole === UserRole.ADMIN ? 'visible' : 'hidden',
+                    }}
                   >
                     <Edit2 className="size-3.5" /> Sửa
                   </Button>
@@ -190,6 +201,10 @@ export function StaffBoard({
                     size="sm"
                     className="text-destructive hover:text-destructive hover:bg-destructive/10"
                     onClick={() => setDelId(s.id!)}
+                    style={{
+                      visibility:
+                        userRole === UserRole.ADMIN ? 'visible' : 'hidden',
+                    }}
                   >
                     <Trash2 className="size-3.5" />
                   </Button>

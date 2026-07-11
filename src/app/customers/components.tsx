@@ -136,7 +136,9 @@ export function Customers() {
                   <p className="font-medium text-foreground text-sm">
                     {c.name}
                   </p>
-                  <p className="text-xs text-muted-foreground">{c.phone}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {c.phone.replace(/.(?=.{3})/g, '*')}
+                  </p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <Badge

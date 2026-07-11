@@ -149,7 +149,10 @@ export function durCfg(d: Durability) {
     },
   }[d];
 }
-
+export const ADMIN = {
+  id: 'aceb5a56-65f8-453c-a59d-f440971c1043',
+  name: 'Admin Owner',
+};
 export const EMPTY_DRAFT: Booking = {
   customerName: '',
   //   phone: '',
@@ -157,7 +160,7 @@ export const EMPTY_DRAFT: Booking = {
   bedKey: BedKey.BED_1,
   date: TODAY,
   startTime: '09:00',
-  staffId: 'aceb5a56-65f8-453c-a59d-f440971c1043',
+  staffId: ADMIN.id,
   note: '',
   status: BookingStatus.OPEN,
   price: 90,
@@ -169,9 +172,4 @@ export const TABLE_NAMES = {
   CUSTOMERS: 'customers',
   STAFF: 'staff',
   MATERIALS: 'materials',
-};
-
-export const ADMIN = {
-  id: 'aceb5a56-65f8-453c-a59d-f440971c1043',
-  name: 'Admin Owner',
 };

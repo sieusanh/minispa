@@ -184,5 +184,6 @@ export async function loginAction(loginPayload: LoginPayload) {
 export async function logoutAction() {
   const cookieStore = await cookies();
   cookieStore.delete('access_token');
+  cookieStore.delete('username');
   redirect('/login');
 }

@@ -4,7 +4,7 @@ import { SupabaseClient, RealtimeChannel } from '@supabase/supabase-js';
 import { createClient as createServerClient } from '../supabase/server';
 import { createClient } from '../supabase/client';
 import { createAdminClient } from '../supabase/admin';
-import { TABLE_NAMES } from '@/constants/config';
+import { TABLE_NAMES, ADMIN } from '@/constants/config';
 import { CACHE_TAG } from '@/constants/cache';
 import { Booking, BookingStatus, FindParams } from '@/types';
 import { toSnake, toCamel, transformDataInput } from '@/utils/common';
@@ -30,7 +30,10 @@ export async function findBookingById(id: string) {
   return res;
 }
 
-export async function findBookingsByDate(date: Date) {
+export async function findBookingsByDate(
+  date: Date,
+  staffId: string = ADMIN.id
+) {
   //   'use cache';
   //   cacheLife('hours');
   //   cacheLife({
@@ -47,12 +50,18 @@ export async function findBookingsByDate(date: Date) {
   const bookingDate = date.toLocaleDateString('en-CA');
 
   const supabase: SupabaseClient = createAdminClient();
-  const { data, error } = await supabase
+  let query = supabase
     .from(TABLE_NAMES.BOOKINGS)
     .select('*')
     .eq('date', bookingDate)
     .eq('is_active', true);
   //   .single();
+
+  if (staffId !== ADMIN.id) {
+    query = query.eq('staff_id', staffId);
+  }
+
+  const { data, error } = await query;
 
   if (error) throw error;
 

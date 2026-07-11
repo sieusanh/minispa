@@ -29,8 +29,9 @@ export default async function RootLayout({
   const token = cookieStore.get('access_token')?.value;
   const isAuthenticated = Boolean(token);
 
-  const headersList = await headers();
-  const username = headersList.get('x-user-username')!;
+  //   const headersList = await headers();
+  //   const username = headersList.get('x-user-username')!;
+  const username = cookieStore.get('username')?.value;
 
   //   return (
   //     <html lang="vi" suppressHydrationWarning={true}>
@@ -70,7 +71,7 @@ export default async function RootLayout({
           disableTransitionOnChange
         >
           <div className="min-h-screen bg-background">
-            <AppHeader isAuthenticated={isAuthenticated} username={username} />
+            <AppHeader isAuthenticated={isAuthenticated} username={username!} />
             {isAuthenticated && <Sidebar nav={APP_NAV} />}
             <main className="md:ml-60 min-h-[calc(100vh-3.5rem)] pb-16 md:pb-0">
               {children}

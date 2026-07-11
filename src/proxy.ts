@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { verifyToken } from '@/utils/auth';
+import { verifyToken, setServerCookie } from '@/utils/auth';
 
 // 1. Specify protected and public routes
 const protectedRoutes = ['/bookings', '/staff', '/customers'];
@@ -49,6 +49,8 @@ export default async function proxy(req: NextRequest) {
     if (!id) {
       return NextResponse.redirect(new URL('/login', req.nextUrl));
     }
+
+    await setServerCookie('username', username as string);
 
     // 6. Proceed if the user is authenticated
     return NextResponse.next({

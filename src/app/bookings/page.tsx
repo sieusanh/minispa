@@ -8,10 +8,12 @@
 // import { BookingStatus } from '@/types';
 // import { BookingTimeline, BookingDrawer } from './_components';
 
+import { headers } from 'next/headers';
 import { findAllStaff } from '@/lib/data/staff';
 import { findBookingsByDate } from '@/lib/data/bookings';
 import { TODAY } from '@/constants/config';
 import { Scheduler } from './components';
+import { UserRole } from '@/types';
 
 // ─── BOOKING TIMELINE ─────────────────────────────────────────────────────────
 
@@ -253,13 +255,24 @@ import { Scheduler } from './components';
 // }
 
 export default async function BookingPage() {
+  const headersList = await headers();
+
+  // Retrieve the custom headers set by the middleware
+  const userId = headersList.get('x-user-id')!;
+  const userRole = headersList.get('x-user-role')! as UserRole;
+
   const staffPromise = findAllStaff();
-  const bookingsPromise = findBookingsByDate(TODAY);
+  const bookingsPromise = findBookingsByDate(TODAY, userId);
   //   const todayQueryParam = { date: new Date() };
   //   const bookings = findAllBookings({ where: todayQueryParam });
 
   return (
-    <Scheduler staffPromise={staffPromise} bookingsPromise={bookingsPromise} />
+    <Scheduler
+      staffPromise={staffPromise}
+      bookingsPromise={bookingsPromise}
+      userId={userId}
+      userRole={userRole}
+    />
   );
 }
 

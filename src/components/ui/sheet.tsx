@@ -91,11 +91,19 @@ function SheetHeader({ className, ...props }: React.ComponentProps<'div'>) {
   );
 }
 
-function SheetFooter({ className, ...props }: React.ComponentProps<'div'>) {
+interface SheetFooterProps extends React.ComponentProps<'div'> {
+  readOnly?: boolean;
+}
+
+function SheetFooter({ className, readOnly, ...props }: SheetFooterProps) {
+  console.log('=========== SheetFooter readOnly ', readOnly);
   return (
     <div
       data-slot="sheet-footer"
       className={cn('mt-auto flex flex-col gap-2 p-4', className)}
+      style={{
+        visibility: readOnly ? 'hidden' : 'visible',
+      }}
       {...props}
     />
   );
