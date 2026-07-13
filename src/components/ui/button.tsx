@@ -37,6 +37,7 @@ function Button({
       onClick={handleClick}
       style={{
         visibility: readOnly ? 'hidden' : 'visible',
+        cursor: 'pointer',
       }}
     />
   );

@@ -30,6 +30,23 @@ export async function findBookingById(id: string) {
   return res;
 }
 
+export async function checkVacancy(date: Date, fromTime: string) {
+  const bookingDate = date.toLocaleDateString('en-CA');
+
+  // now -> nearest startTime >= 35mins
+
+  const supabase: SupabaseClient = createAdminClient();
+  const { data, error } = await supabase
+    .from(TABLE_NAMES.BOOKINGS)
+    .select('bed_key')
+    .eq('date', bookingDate)
+    .eq('is_active', true);
+
+  if (error) throw error;
+
+  return data;
+}
+
 export async function findBookingsByDate(
   date: Date,
   staffId: string = ADMIN.id

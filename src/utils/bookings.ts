@@ -2,7 +2,7 @@ import { SupabaseClient, RealtimeChannel } from '@supabase/supabase-js';
 import { type Booking, BookingStatus } from '@/types';
 import { SERVICES } from '@/constants/config';
 import { CACHE_TAG } from '@/constants/cache';
-import { addMinutesToTime, getDateWithOffset } from '@/utils/time';
+import { getEndTime, getDateWithOffset } from '@/utils/time';
 import { createClient } from '@/lib/supabase/client';
 import { toCamel } from './common';
 
@@ -15,7 +15,7 @@ export function deriveStatus(
 
   const bookingDate = new Date(booking.date!).toLocaleDateString('en-CA');
   const start = new Date(`${bookingDate}T${booking.startTime}`);
-  const endTime = addMinutesToTime(
+  const endTime = getEndTime(
     booking.startTime!,
     SERVICES.find((s) => s.id === booking.serviceId)!.durationMin
   );

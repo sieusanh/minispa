@@ -1,11 +1,23 @@
 'use client';
 
 import { useState, useEffect, useTransition, use, useRef } from 'react';
-import { format, addDays } from 'date-fns';
+import { format, addDays, compareAsc, parse } from 'date-fns';
 import { vi } from 'date-fns/locale';
-import { Calendar, Trash2, AlertTriangle, Save } from 'lucide-react';
+import {
+  Calendar,
+  Trash2,
+  AlertTriangle,
+  Save,
+  ChevronLeft,
+  ChevronRight,
+  Plus,
+  LoaderCircle,
+  Zap,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { InfoPopup } from '@/components/ui/info-popup';
+
 import {
   AlertDialog,
   AlertDialogContent,
@@ -39,7 +51,17 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Calendar as CalendarPicker } from '@/components/ui/calendar';
 import { Field } from '@/components/ui/field';
 import { Badge } from '@/components/ui/badge';
-import { EMPTY_DRAFT, SERVICES, ADMIN, statusCfg } from '@/constants/config';
+import {
+  EMPTY_DRAFT,
+  SERVICES,
+  ADMIN,
+  statusCfg,
+  TODAY,
+  REFRESH_INTERVAL_MS,
+  VACANCY_BUFFERED_MINS,
+  RIGHT_NOW_VACANCY_MINS,
+} from '@/constants/config';
+
 import {
   TIMELINE_START_MIN,
   TIMELINE_TOTAL_MIN,
@@ -52,17 +74,23 @@ import {
   timeToMin,
   HOUR_MARKS,
   convertTimeToPM,
-  addMinutesToTime,
+  getEndTime,
   compareDateString,
   timeToLeftPx,
   durationToPx,
+  getMinuteDistance,
 } from '@/utils/time';
 import { formatPrice } from '@/utils/price';
-import { Booking, BookingStatus, Staff, BedKey, UserRole } from '@/types';
+import {
+  Booking,
+  BookingStatus,
+  VacancyState,
+  Staff,
+  BedKey,
+  UserRole,
+} from '@/types';
 import { cn } from '@/utils/common';
 import { deriveStatus, runRealtimeBookings } from '@/utils/bookings';
-import { TODAY, REFRESH_INTERVAL_MS } from '@/constants/config';
-import { ChevronLeft, ChevronRight, Plus, LoaderCircle } from 'lucide-react';
 import {
   upsertBooking,
   bulkUpdateBooking,
@@ -178,7 +206,7 @@ export function DatePickerField({
 //         >
 //           {convertTimeToPM(booking.startTime!)} -{' '}
 //           {convertTimeToPM(
-//             addMinutesToTime(booking.startTime!, svc.durationMin)
+//             getEndTime(booking.startTime!, svc.durationMin)
 //           )}
 //         </p>
 //         <p
@@ -298,9 +326,7 @@ export function BookingBlock({
   const cfg = statusCfg(status!);
 
   const startTimeStr = convertTimeToPM(startTime!);
-  const endTimeStr = convertTimeToPM(
-    addMinutesToTime(startTime!, svc.durationMin)
-  );
+  const endTimeStr = convertTimeToPM(getEndTime(startTime!, svc.durationMin));
 
   return (
     <div
@@ -1167,6 +1193,181 @@ export function BookingEditDrawer({
   );
 }
 
+export function VacancyPopup({
+  isOpen,
+  onClose,
+  vacancies,
+  selectedOption,
+  handleChange,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  vacancies: VacancyState[];
+  selectedOption: number;
+  handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}) {
+  return (
+    <InfoPopup isOpen={isOpen} onClose={onClose} title="Giường trống">
+      {/* {vacancies?.length === 0 ? (
+        <div>
+          <p style={{ color: 'red' }}>Hiện giờ đang full lịch</p>
+        </div>
+      ) : ( */}
+      <div>
+        <form style={{ display: 'flex' }}>
+          {Object.values(RIGHT_NOW_VACANCY_MINS)
+            .filter((min): min is number => typeof min === 'number')
+            .map((min: number) => (
+              <label key={min} style={{ marginLeft: '10px' }}>
+                <input
+                  type="radio"
+                  name="option"
+                  value={String(min)}
+                  checked={selectedOption === min}
+                  onChange={handleChange}
+                  style={{ cursor: 'pointer' }}
+                />
+                {`${min}p`}
+              </label>
+            ))}
+        </form>
+        <div>
+          {vacancies.map(({ bedKey, available, nowStartTime, waitTime }) => (
+            <div key={bedKey as string} style={{ whiteSpace: 'pre-wrap' }}>
+              {available ? (
+                <p
+                  //   style={{ whiteSpace: 'pre-line' }}
+                  style={{ color: 'Chartreuse' }}
+                >
+                  Giường {bedKey} trống lúc {nowStartTime}, chờ{' '}
+                  <span style={{ color: 'DarkOrange' }}>{waitTime}</span> phút.
+                </p>
+              ) : (
+                <p style={{ color: 'Crimson' }}>
+                  Giường {bedKey} đang kẹt lịch
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+      {/* )} */}
+    </InfoPopup>
+  );
+}
+
+export function NowVacancy({ bookings }: { bookings: Partial<Booking>[] }) {
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+
+  const [selectedOption, setSelectedOption] = useState(35);
+  const [rightNowVacancies, setRightNowVacancies] = useState<VacancyState[]>(
+    []
+  );
+
+  function getRightNowVacancies(
+    durationMins: number = 30,
+    waitMins: number = 20
+  ) {
+    const rightNowVacancies: VacancyState[] = Object.values(BedKey).map(
+      (bedKey) => {
+        let nowStartTime: string = format(new Date(), 'HH:mm');
+        let waitTime: number = 0;
+        let minStartDiff: number = 24 * 60;
+
+        const filteredBookings = bookings
+          .filter((b) => b.bedKey === bedKey)
+          .sort((a, b) => {
+            // Use a fixed reference date (e.g., today's date) for accurate comparisons
+            const baseDate = new Date().setHours(0, 0, 0, 0);
+
+            return compareAsc(
+              parse(a.startTime!, 'HH:mm', baseDate),
+              parse(b.startTime!, 'HH:mm', baseDate)
+            );
+          });
+
+        for (const { startTime, serviceId } of filteredBookings) {
+          const endTime = getEndTime(
+            startTime!,
+            SERVICES.find((s) => s.id === serviceId)!.durationMin
+          );
+
+          if (
+            getMinuteDistance(startTime!, nowStartTime) > 0 &&
+            getMinuteDistance(nowStartTime, endTime) > 0
+          ) {
+            waitTime =
+              getMinuteDistance(nowStartTime, endTime) + VACANCY_BUFFERED_MINS;
+            if (waitTime <= waitMins) {
+              nowStartTime = getEndTime(endTime, VACANCY_BUFFERED_MINS);
+            } else {
+              // no vacancy
+              return {
+                bedKey,
+                available: false,
+              };
+            }
+            continue;
+          }
+
+          // minStartDiff = getMinuteDistance(nowStartTime, startTime!);
+          // if (minStartDiff >= durationMins) {
+          //     if (getMinuteDistance(nowStartTime, startTime!) < minStartDiff) {
+          //         minStartDiff = getMinuteDistance(nowStartTime, startTime!);
+          //     }
+          // }
+          if (getMinuteDistance(nowStartTime, startTime!) < minStartDiff) {
+            minStartDiff = getMinuteDistance(nowStartTime, startTime!);
+          }
+        }
+
+        if (minStartDiff < durationMins + VACANCY_BUFFERED_MINS) {
+          return {
+            bedKey,
+            available: false,
+          };
+        }
+
+        return {
+          bedKey,
+          available: true,
+          nowStartTime,
+          waitTime,
+        };
+      }
+    );
+
+    return rightNowVacancies;
+  }
+
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const minNum = Number(event.target.value);
+    setSelectedOption(minNum);
+    setRightNowVacancies(getRightNowVacancies(minNum));
+  };
+
+  return (
+    // <main className="flex flex-col items-center justify-center min-h-screen p-24">
+    <div className="inline-flex items-center">
+      <Zap
+        color="#f59e0b"
+        size={32}
+        strokeWidth={2.5}
+        style={{ cursor: 'pointer' }}
+        onClick={() => setIsPopupOpen((prev) => !prev)}
+      />
+
+      <VacancyPopup
+        isOpen={isPopupOpen}
+        onClose={() => setIsPopupOpen(false)}
+        vacancies={rightNowVacancies}
+        selectedOption={selectedOption}
+        handleChange={handleChange}
+      />
+    </div>
+  );
+}
+
 export function Scheduler({
   staffPromise,
   bookingsPromise,
@@ -1191,7 +1392,6 @@ export function Scheduler({
   const [isDeleting, startDeleting] = useTransition();
   const bookingsRef = useRef(bookings);
   const readOnly = userRole !== UserRole.ADMIN;
-  console.log('========= Scheduler readOnly ', readOnly);
 
   useEffect(() => {
     const { supabase, channel } = runRealtimeBookings(
@@ -1311,10 +1511,15 @@ export function Scheduler({
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-3.5rem)]">
+    <div className="flex flex-col h-[calc(100   vh-3.5rem)]">
       <div className="flex items-center justify-between px-5 py-3.5 border-b border-border bg-background/80 backdrop-blur-sm flex-shrink-0">
         <div
-          className={`flex items-center gap-3 ${isNavigating ? 'opacity-60 pointer-events-none' : ''}`}
+          //   className={`flex items-center gap-3 ${isNavigating ? 'opacity-60 pointer-events-none' : ''}`}
+          //   className="flex items-center justify-between gap-2 sm:justify-start sm:gap-3"
+          className={cn(
+            'flex items-center justify-between gap-2 sm:justify-start sm:gap-3',
+            isNavigating && 'opacity-60 pointer-events-none'
+          )}
         >
           <button
             // onClick={() => setDate((d) => addDays(d, -1))}
@@ -1322,6 +1527,7 @@ export function Scheduler({
               handleDateChange(addDays(date, -1));
             }}
             className="size-8 rounded-md border border-border flex items-center justify-center hover:bg-secondary transition-colors"
+            style={{ cursor: 'pointer' }}
           >
             <ChevronLeft className="size-4" />
           </button>
@@ -1337,10 +1543,15 @@ export function Scheduler({
             // onClick={() => setDate((d) => addDays(d, 1))}
             onClick={() => handleDateChange(addDays(date, 1))}
             className="size-8 rounded-md border border-border flex items-center justify-center hover:bg-secondary transition-colors"
+            style={{ cursor: 'pointer' }}
           >
             <ChevronRight className="size-4" />
           </button>
         </div>
+        {/* <div style={{ cursor: 'pointer' }}>
+          <Zap color="#f59e0b" size={32} strokeWidth={2.5} />
+        </div> */}
+        <NowVacancy bookings={bookings} />
         <Button
           size="sm"
           onClick={() => setCreateOpen(true)}

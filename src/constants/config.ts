@@ -14,6 +14,15 @@ export const TODAY: Date = new Date();
 
 export const REFRESH_INTERVAL_MS: number = 60_000;
 
+export const VACANCY_BUFFERED_MINS = 5;
+
+export enum RIGHT_NOW_VACANCY_MINS {
+  OPTION_1 = 15,
+  OPTION_2 = 30,
+  OPTION_3 = 60,
+  OPTION_4 = 100,
+}
+
 // Remember calculating the pending staff's salary before changing Service's price
 export const SERVICES: Service[] = [
   {

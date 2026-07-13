@@ -1,7 +1,7 @@
 import { Booking } from '@/types/booking';
 import { TIMELINE_START_MIN, HOUR_WIDTH_PX } from '@/constants/time';
 import { SERVICES } from '@/constants/config';
-import { isSameDay } from 'date-fns';
+import { isSameDay, parse, differenceInMinutes } from 'date-fns';
 
 export function timeToMin(t: string) {
   const [h, m] = t.split(':').map(Number);
@@ -57,7 +57,7 @@ export function convertTimeToPM(time24h: string, delimiter: string = 'h') {
   return `${hours12}${delimiter}${minutes}`;
 }
 
-export function addMinutesToTime(startTime: string, durationMinutes: number) {
+export function getEndTime(startTime: string, durationMinutes: number) {
   // 1. Split the string into hours and minutes
   const [hours, minutes] = startTime.split(':').map(Number);
 
@@ -67,6 +67,18 @@ export function addMinutesToTime(startTime: string, durationMinutes: number) {
 
   // 3. Format the result back to HH:mm, ensuring 2-digit zero-padding
   return date.toTimeString().slice(0, 5);
+}
+
+export function getMinuteDistance(startTime: string, endTime: string): number {
+  // Use any consistent base date to anchor the times
+  const baseDate = new Date(2000, 0, 1);
+
+  // Parse the hh:mm strings relative to the base date
+  const date1 = parse(startTime, 'HH:mm', baseDate);
+  const date2 = parse(endTime, 'HH:mm', baseDate);
+
+  // Calculate the absolute minute difference
+  return Math.abs(differenceInMinutes(date1, date2));
 }
 
 // export function getDateString(date: Date) {

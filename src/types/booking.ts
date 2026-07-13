@@ -32,6 +32,13 @@ export interface Booking extends IBase {
   notified: boolean;
 }
 
+export interface VacancyState {
+  bedKey: string;
+  available: boolean;
+  nowStartTime?: string;
+  waitTime?: number;
+}
+
 // export interface Booking {
 //   id?: string;
 //   customerName: string;
