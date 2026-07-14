@@ -3,6 +3,10 @@ import { TIMELINE_START_MIN, HOUR_WIDTH_PX } from '@/constants/time';
 import { SERVICES } from '@/constants/config';
 import { isSameDay, parse, differenceInMinutes } from 'date-fns';
 
+export function getToday(): Date {
+  return new Date();
+}
+
 export function timeToMin(t: string) {
   const [h, m] = t.split(':').map(Number);
   return h * 60 + m;

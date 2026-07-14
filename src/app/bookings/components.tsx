@@ -56,7 +56,6 @@ import {
   SERVICES,
   ADMIN,
   statusCfg,
-  TODAY,
   REFRESH_INTERVAL_MS,
   VACANCY_BUFFERED_MINS,
   RIGHT_NOW_VACANCY_MINS,
@@ -79,6 +78,7 @@ import {
   timeToLeftPx,
   durationToPx,
   getMinuteDistance,
+  getToday,
 } from '@/utils/time';
 import { formatPrice } from '@/utils/price';
 import {
@@ -1385,7 +1385,7 @@ export function Scheduler({
     status: deriveStatus(b, new Date()),
   }));
 
-  const [date, setDate] = useState<Date>(TODAY);
+  const [date, setDate] = useState<Date>(() => getToday());
   const [bookings, setBookings] = useState<Partial<Booking>[]>(todayBooking);
   const [createOpen, setCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);

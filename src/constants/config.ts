@@ -6,11 +6,11 @@ import {
   BookingStatus,
   BedKey,
 } from '@/types';
+import { getToday } from '@/utils/time';
 
 // import { format } from 'date-fns';
 
 // export const TODAY: string = format(new Date(), 'yyyy-MM-dd');
-export const TODAY: Date = new Date();
 
 export const REFRESH_INTERVAL_MS: number = 60_000;
 
@@ -167,7 +167,7 @@ export const EMPTY_DRAFT: Booking = {
   //   phone: '',
   serviceId: SERVICES[2].id!,
   bedKey: BedKey.BED_1,
-  date: TODAY,
+  date: getToday(),
   startTime: '09:00',
   staffId: ADMIN.id,
   staffName: '',

@@ -11,7 +11,7 @@
 import { headers } from 'next/headers';
 import { findAllStaff } from '@/lib/data/staff';
 import { findBookingsByDate } from '@/lib/data/bookings';
-import { TODAY } from '@/constants/config';
+import { getToday } from '@/utils/time';
 import { Scheduler } from './components';
 import { UserRole } from '@/types';
 
@@ -262,7 +262,7 @@ export default async function BookingPage() {
   const userRole = headersList.get('x-user-role')! as UserRole;
 
   const staffPromise = findAllStaff();
-  const bookingsPromise = findBookingsByDate(TODAY, userId);
+  const bookingsPromise = findBookingsByDate(getToday(), userId);
   //   const todayQueryParam = { date: new Date() };
   //   const bookings = findAllBookings({ where: todayQueryParam });
 
