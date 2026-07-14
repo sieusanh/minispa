@@ -1084,7 +1084,7 @@ export function BookingEditDrawer({
                     Đang làm
                   </SelectItem>
                   <SelectItem value={BookingStatus.DONE}>Xong</SelectItem>
-                  <SelectItem value={BookingStatus.CANCELLED}>Huỷ</SelectItem>
+                  {/* <SelectItem value={BookingStatus.CANCELLED}>Huỷ</SelectItem> */}
                 </SelectContent>
               </Select>
             </Field>
@@ -1380,7 +1380,10 @@ export function Scheduler({
   userRole: UserRole;
 }) {
   const staff = use(staffPromise);
-  const todayBooking = use(bookingsPromise);
+  const todayBooking = use(bookingsPromise).map((b) => ({
+    ...b,
+    status: deriveStatus(b, new Date()),
+  }));
 
   const [date, setDate] = useState<Date>(TODAY);
   const [bookings, setBookings] = useState<Partial<Booking>[]>(todayBooking);
@@ -1434,18 +1437,13 @@ export function Scheduler({
   useEffect(() => {
     const id = setInterval(() => {
       const now = new Date();
-      let hasChanged = false;
 
-      const updated = bookingsRef.current.map((b) => {
-        const derived = deriveStatus(b, now);
-        if (b.status === derived) return b; // ← same object reference, no change
-        hasChanged = true;
-        return { ...b, status: derived }; // ← immutable update, new object
-      });
+      const updated = bookingsRef.current.map((b) => ({
+        ...b,
+        status: deriveStatus(b, now),
+      }));
 
-      if (hasChanged) {
-        setBookings(updated); // ← local state only, no server call
-      }
+      setBookings(updated); // ← local state only, no server call
     }, REFRESH_INTERVAL_MS);
 
     return () => clearInterval(id);

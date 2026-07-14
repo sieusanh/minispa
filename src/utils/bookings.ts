@@ -1,30 +1,58 @@
 import { SupabaseClient, RealtimeChannel } from '@supabase/supabase-js';
+import { parseISO, isAfter, differenceInMinutes } from 'date-fns';
+import { createClient } from '@/lib/supabase/client';
 import { type Booking, BookingStatus } from '@/types';
 import { SERVICES } from '@/constants/config';
 import { CACHE_TAG } from '@/constants/cache';
 import { getEndTime, getDateWithOffset } from '@/utils/time';
-import { createClient } from '@/lib/supabase/client';
 import { toCamel } from './common';
+
+// export function deriveStatus(
+//   booking: Partial<Booking>,
+//   now = new Date()
+// ): BookingStatus {
+//   if (booking.status === BookingStatus.CANCELLED)
+//     return BookingStatus.CANCELLED;
+
+//   const bookingDate = new Date(booking.date!).toLocaleDateString('en-CA');
+//   const start = new Date(`${bookingDate}T${booking.startTime}`);
+//   const endTime = getEndTime(
+//     booking.startTime!,
+//     SERVICES.find((s) => s.id === booking.serviceId)!.durationMin
+//   );
+//   const end = new Date(`${bookingDate}T${endTime}`);
+//   const minsUntilStart = (start.getTime() - now.getTime()) / 1000 / 60;
+
+//   if (now >= end) return BookingStatus.DONE;
+//   if (now >= start) return BookingStatus.IN_PROGRESS;
+//   if (minsUntilStart <= 30) return BookingStatus.UPCOMING;
+//   return BookingStatus.OPEN;
+// }
 
 export function deriveStatus(
   booking: Partial<Booking>,
   now = new Date()
 ): BookingStatus {
-  if (booking.status === BookingStatus.CANCELLED)
-    return BookingStatus.CANCELLED;
+  //   if (booking.status === BookingStatus.CANCELLED) {
+  //     return BookingStatus.CANCELLED;
+  //   }
 
-  const bookingDate = new Date(booking.date!).toLocaleDateString('en-CA');
-  const start = new Date(`${bookingDate}T${booking.startTime}`);
+  // Ensure date is formatted properly (YYYY-MM-DD)
+  const bookingDate = new Date(booking.date!).toISOString().split('T')[0];
+
+  const start = parseISO(`${bookingDate}T${booking.startTime}`);
   const endTime = getEndTime(
     booking.startTime!,
     SERVICES.find((s) => s.id === booking.serviceId)!.durationMin
   );
-  const end = new Date(`${bookingDate}T${endTime}`);
-  const minsUntilStart = (start.getTime() - now.getTime()) / 1000 / 60;
+  const end = parseISO(`${bookingDate}T${endTime}`);
 
-  if (now >= end) return BookingStatus.DONE;
-  if (now >= start) return BookingStatus.IN_PROGRESS;
+  if (isAfter(now, end)) return BookingStatus.DONE;
+  if (isAfter(now, start)) return BookingStatus.IN_PROGRESS;
+
+  const minsUntilStart = differenceInMinutes(start, now);
   if (minsUntilStart <= 30) return BookingStatus.UPCOMING;
+
   return BookingStatus.OPEN;
 }
 

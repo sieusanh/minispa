@@ -1,11 +1,17 @@
 import { IBase } from './base';
 
+// export enum BookingStatus {
+//   OPEN = 'open',
+//   UPCOMING = 'upcoming',
+//   IN_PROGRESS = 'in_progress',
+//   DONE = 'done',
+//   CANCELLED = 'cancelled',
+// }
 export enum BookingStatus {
-  OPEN = 'open',
-  UPCOMING = 'upcoming',
-  IN_PROGRESS = 'in_progress',
   DONE = 'done',
-  CANCELLED = 'cancelled',
+  IN_PROGRESS = 'in_progress',
+  UPCOMING = 'upcoming',
+  OPEN = 'open',
 }
 
 export enum BedKey {
@@ -13,7 +19,7 @@ export enum BedKey {
   BED_2 = '2',
   BED_3 = '3',
   BED_4 = '4',
-  BED_5 = '5',
+  //   BED_5 = '5',
 }
 
 export interface Booking extends IBase {

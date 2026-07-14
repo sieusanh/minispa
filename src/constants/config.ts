@@ -114,24 +114,24 @@ export function statusCfg(s: BookingStatus) {
     open: { label: 'Mở', color: '#4ADE80', bg: 'rgba(74,222,128,.15)' },
     upcoming: {
       label: 'Sắp tới',
-      color: '#FB923C',
-      bg: 'rgba(251,146,60,.15)',
+      color: '#FACC15',
+      bg: 'rgba(250,204,21,.15)',
     },
     in_progress: {
       label: 'Đang làm',
-      color: '#FACC15',
-      bg: 'rgba(250,204,21,.15)',
+      color: '#FB923C',
+      bg: 'rgba(251,146,60,.15)',
     },
     done: {
       label: 'Xong',
       color: '#7C6AF7',
       bg: 'rgba(124,106,247,.18)',
     },
-    cancelled: {
-      label: 'Huỷ',
-      color: '#F87171',
-      bg: 'rgba(248,113,113,.15)',
-    },
+    // cancelled: {
+    //   label: 'Huỷ',
+    //   color: '#F87171',
+    //   bg: 'rgba(248,113,113,.15)',
+    // },
   }[s];
 }
 
@@ -170,6 +170,7 @@ export const EMPTY_DRAFT: Booking = {
   date: TODAY,
   startTime: '09:00',
   staffId: ADMIN.id,
+  staffName: '',
   note: '',
   status: BookingStatus.OPEN,
   price: 90,

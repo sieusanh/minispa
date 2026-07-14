@@ -12,7 +12,6 @@ import {
   transformBookingInput,
   transformBookingOutput,
   bookingDateTag,
-  deriveStatus,
 } from '@/utils/bookings';
 
 export async function findBookingById(id: string) {
@@ -205,7 +204,10 @@ export async function softDeleteBookingById(id: string) {
   const supabase = await createServerClient();
   const { data, error } = await supabase
     .from(TABLE_NAMES.BOOKINGS)
-    .update({ is_active: false, status: BookingStatus.CANCELLED })
+    .update({
+      is_active: false,
+      // status: BookingStatus.CANCELLED
+    })
     .eq('id', id)
     .select()
     .single();
