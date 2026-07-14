@@ -1,5 +1,5 @@
 import { SupabaseClient, RealtimeChannel } from '@supabase/supabase-js';
-import { parseISO, isAfter, differenceInMinutes } from 'date-fns';
+import { parseISO, format, isAfter, differenceInMinutes } from 'date-fns';
 import { createClient } from '@/lib/supabase/client';
 import { type Booking, BookingStatus } from '@/types';
 import { SERVICES } from '@/constants/config';
@@ -38,7 +38,9 @@ export function deriveStatus(
   //   }
 
   // Ensure date is formatted properly (YYYY-MM-DD)
-  const bookingDate = new Date(booking.date!).toISOString().split('T')[0];
+  //   const bookingDate = new Date(booking.date!).toISOString().split('T')[0];
+  const bookingDateObj = parseISO(booking.date!.toISOString()); // parses as local time if no 'Z'/offset, or correctly if it has one
+  const bookingDate = format(bookingDateObj, 'yyyy-MM-dd'); // LOCAL calendar date, not UTC
 
   const start = parseISO(`${bookingDate}T${booking.startTime}`);
   const endTime = getEndTime(
