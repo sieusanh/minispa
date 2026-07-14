@@ -38,8 +38,10 @@ export function deriveStatus(
   //   }
 
   // Ensure date is formatted properly (YYYY-MM-DD)
-  //   const bookingDate = new Date(booking.date!).toISOString().split('T')[0];
-  const bookingDateObj = parseISO(booking.date!.toISOString()); // parses as local time if no 'Z'/offset, or correctly if it has one
+  //   const bookingDate1 = new Date(booking.date!).toISOString().split('T')[0];
+
+  //   const bookingDateObj = parseISO(booking.date!.toISOString()); // parses as local time if no 'Z'/offset, or correctly if it has one
+  const bookingDateObj = parseISO(booking.date!.toISOString());
   const bookingDate = format(bookingDateObj, 'yyyy-MM-dd'); // LOCAL calendar date, not UTC
 
   const start = parseISO(`${bookingDate}T${booking.startTime}`);

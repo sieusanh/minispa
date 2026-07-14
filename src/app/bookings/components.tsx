@@ -1434,17 +1434,49 @@ export function Scheduler({
 
   // Refresh booking status automatically
   // Interval reads from ref — always current, never stale
+  //   useEffect(() => {
+  //     const id = setInterval(() => {
+  //       const now = new Date();
+  //       let hasChanged = false;
+
+  //       const updated = bookingsRef.current.map((b) => {
+  //         const derived = deriveStatus(b, now);
+  //         if (b.status === derived) return b; // ← same object reference, no change
+  //         hasChanged = true;
+  //         return { ...b, status: derived }; // ← immutable update, new object
+  //       });
+
+  //       if (hasChanged) {
+  //         setBookings(updated); // ← local state only, no server call
+  //       }
+  //     }, REFRESH_INTERVAL_MS);
+
+  //   useEffect(() => {
+  //     const id = setInterval(() => {
+  //       const now = new Date();
+
+  //       const updated = bookingsRef.current.map((b) => ({
+  //         ...b,
+  //         status: deriveStatus(b, now),
+  //       }));
+
+  //       setBookings(updated); // ← local state only, no server call
+  //     }, REFRESH_INTERVAL_MS);
+
+  //     return () => clearInterval(id);
+  //   }, []);
+
+  // Client-only status computation: runs immediately on mount, then on interval
   useEffect(() => {
-    const id = setInterval(() => {
+    const recomputeStatuses = () => {
       const now = new Date();
+      setBookings((prev) =>
+        prev.map((b) => ({ ...b, status: deriveStatus(b, now) }))
+      );
+    };
 
-      const updated = bookingsRef.current.map((b) => ({
-        ...b,
-        status: deriveStatus(b, now),
-      }));
-
-      setBookings(updated); // ← local state only, no server call
-    }, REFRESH_INTERVAL_MS);
+    recomputeStatuses(); // run once immediately — replaces the render-body new Date()
+    const id = setInterval(recomputeStatuses, REFRESH_INTERVAL_MS);
 
     return () => clearInterval(id);
   }, []);
