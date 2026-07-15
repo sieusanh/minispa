@@ -1380,12 +1380,19 @@ export function Scheduler({
   userRole: UserRole;
 }) {
   const staff = use(staffPromise);
-  const todayBooking = use(bookingsPromise).map((b) => ({
-    ...b,
-    status: deriveStatus(b, new Date()),
-  }));
+  //   const todayBooking = use(bookingsPromise).map((b) => {
+  //     const now = new Date();
+  //     console.log('========== todayBooking now ', now);
+
+  //     return {
+  //       ...b,
+  //       status: deriveStatus(b, new Date()),
+  //     };
+  //   });
+  const todayBooking = use(bookingsPromise);
 
   const [date, setDate] = useState<Date>(() => getToday());
+  //   const [date, setDate] = useState<Date>(getToday());
   const [bookings, setBookings] = useState<Partial<Booking>[]>(todayBooking);
   const [createOpen, setCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
@@ -1469,7 +1476,10 @@ export function Scheduler({
   // Client-only status computation: runs immediately on mount, then on interval
   useEffect(() => {
     const recomputeStatuses = () => {
+      //   const now = new Date('2026-07-15T08:40:52.398Z');
       const now = new Date();
+      console.log('========== useEffect now ', now);
+
       setBookings((prev) =>
         prev.map((b) => ({ ...b, status: deriveStatus(b, now) }))
       );
