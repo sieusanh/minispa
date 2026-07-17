@@ -5,6 +5,7 @@ import { format, addDays, compareAsc, parse } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import {
   Calendar,
+  CalendarDays,
   Trash2,
   AlertTriangle,
   Save,
@@ -66,17 +67,21 @@ import {
   TIMELINE_TOTAL_MIN,
   TOTAL_WIDTH_PX,
   HOUR_WIDTH_PX,
+  HOUR_HEIGHT_PX,
 } from '@/constants/time';
 import {
   checkConflict,
   TIME_SLOTS,
   timeToMin,
   HOUR_MARKS,
+  MOBILE_HOUR_MARKS,
   convertTimeToPM,
   getEndTime,
   compareDateString,
   timeToLeftPx,
-  durationToPx,
+  timeToTopPx,
+  durationToWidthPx,
+  durationToHeightPx,
   getMinuteDistance,
   getToday,
 } from '@/utils/time';
@@ -313,28 +318,49 @@ export function BookingBlock({
   booking,
   onClick,
   readOnly,
+  isMobile,
 }: {
   booking: Partial<Booking>;
   onClick?: () => void;
   readOnly: boolean;
+  isMobile: boolean;
 }) {
   const svc = SERVICES.find((s) => s.id === booking.serviceId);
   if (!svc) return null;
-  const { id, bedKey, startTime, date, status, customerName, staffName } =
-    booking;
-
+  const {
+    id,
+    bedKey,
+    startTime,
+    date,
+    status,
+    customerName,
+    staffName,
+    staffId,
+    note,
+  } = booking;
   const cfg = statusCfg(status!);
-
   const startTimeStr = convertTimeToPM(startTime!);
   const endTimeStr = convertTimeToPM(getEndTime(startTime!, svc.durationMin));
-
+  const isFastService = svc.durationMin <= 50;
   return (
     <div
       //   key={id ?? `${bedKey}-${startTime}-${date}`}
-      className="absolute top-1 bottom-1"
+      //   className="absolute md:top-1 md:bottom-1 left-71 right-71"
+      //   className="absolute md:top-1 md:bottom-1"
+      className="absolute rounded-md md:px-1.5 md:py-1 text-[10px] overflow-hidden md:top-1 md:bottom-1 md:w-auto h-full w-full"
+      onClick={onClick}
       style={{
-        left: timeToLeftPx(startTime!),
-        width: durationToPx(svc.durationMin),
+        ...(isMobile
+          ? {
+              top: timeToTopPx(startTime!),
+              height: durationToHeightPx(svc.durationMin),
+              left: 2,
+              right: 2,
+            }
+          : {
+              left: timeToLeftPx(startTime!),
+              width: durationToWidthPx(svc.durationMin),
+            }),
         // fontSize: svc.durationMin <= 35 ? 10 : 16,
       }}
     >
@@ -342,7 +368,7 @@ export function BookingBlock({
         className={cn(
           // No absolute/left/width here — parent wrapper handles position
           //   'relative h-full rounded-lg border overflow-hidden min-w-[56px]',
-          'relative h-full rounded-lg border overflow-hidden min-w-[36px]',
+          'relative h-full rounded-lg border overflow-hidden md:min-w-[36px] max-w-full',
           'transition-all',
           !readOnly && 'cursor-pointer hover:brightness-110'
         )}
@@ -360,15 +386,19 @@ export function BookingBlock({
 
         {/* Content */}
         <div
-          className="px-2 pt-1 h-full flex flex-col justify-center gap-0.5"
+          className="md:px-2 px-1 pt-1 h-full flex flex-col justify-center gap-0.5"
           // style={{ fontSize: svc.durationMin <= 35 ? 10 : 16 }}
           //   style={{ fontSize: '20px !important' }}
         >
-          <p className="text-xs font-semibold text-foreground truncate leading-none">
+          <p
+            // className="text-xs font-semibold text-foreground truncate leading-none"
+            className={`${isFastService ? '' : 'text-xs'} font-semibold text-foreground leading-tight line-clamp-2 break-words`}
+          >
             {customerName}
           </p>
           <p
             className="text-[10px] truncate font-medium"
+            // className="text-[10px] font-medium leading-tight line-clamp-1 break-words"
             // className={cn(
             //   'truncate font-medium',
             //   svc.durationMin <= 35 ? 'text-[8px]' : 'text-[10px]'
@@ -382,10 +412,9 @@ export function BookingBlock({
             className="text-[10px] truncate font-medium"
             style={{ color: cfg.color, whiteSpace: 'pre-wrap' }}
           >
-            {svc.durationMin <= 35
-              ? `${startTimeStr} -\n${endTimeStr}`
-              : `${startTimeStr} - ${endTimeStr}\n${staffName}`}
+            {`${startTimeStr} ${isFastService ? '' : '-'} ${endTimeStr}`}
           </p>
+          <p>{staffId === ADMIN.id ? null : staffName}</p>
         </div>
         {/* <div
           className="absolute top-1 right-1.5 size-1.5 rounded-full"
@@ -400,10 +429,12 @@ export function BookingTimeline({
   bookings,
   onBlockClick,
   readOnly = false,
+  isMobile,
 }: {
   bookings: Partial<Booking>[];
   onBlockClick?: (b: Partial<Booking>) => void;
   readOnly?: boolean;
+  isMobile: boolean;
 }) {
   //   return (
   //     <div className="flex overflow-hidden flex-1">
@@ -506,7 +537,102 @@ export function BookingTimeline({
   //       </div>
   //     </div>
   //   );
-  return (
+
+  // Current
+  return isMobile ? (
+    <div className="flex flex-col overflow-hidden w-[280px]">
+      {/* Fixed top: bed labels */}
+      <div
+        // className="flex justify-around flex-shrink-0 w-[160px] border-r border-border z-10 bg-background"
+        className="flex justify-around w-[254px] border-l border-border z-10 bg-background ml-[18px]"
+      >
+        {/* <div className="h-[36px] border-b border-border" /> */}
+        {Object.values(BedKey).map((bed) => (
+          <div key={bed}>
+            <div className="flex items-center justify-center w-[6px] h-[56px]">
+              <Badge
+                variant="outline"
+                className="text-[11px] font-medium px-1 py-1"
+              >
+                Giường {bed}
+              </Badge>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Scrollable right — min-w-0 is the critical fix */}
+      {/* scrollbar-none flex-1 */}
+      <div className="overflow-x-auto flex scrollbar-none border-t border-border">
+        {/* Time header column */}
+        <div className="relative border-b border-border top-[-4px]">
+          {MOBILE_HOUR_MARKS.map((h, i) => (
+            <div
+              key={h}
+              className="absolute flex items-end pb-1"
+              style={{ top: i * HOUR_HEIGHT_PX }}
+            >
+              <span className="text-[11px] font-mono text-muted-foreground select-none">
+                {h}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {/* Grid + bookings — merged into ONE relative container so they overlap */}
+        <div
+          className="relative ml-[19px]"
+          //   style={{ width: 254, height: TOTAL_WIDTH_PX }}
+          style={{ width: 360, height: 1600 }}
+        >
+          {/* Layer 1: hour grid lines — background */}
+          <div className="absolute inset-0">
+            {MOBILE_HOUR_MARKS.map((h, k) => (
+              <div
+                key={h}
+                className="relative border-b border-border bg-secondary/40 w-[260px]"
+                style={{ height: HOUR_HEIGHT_PX }}
+              >
+                {Object.values(BedKey).map((bed, i) => (
+                  <div
+                    key={bed}
+                    className="absolute top-0 bottom-0 border-l border-border/40"
+                    // style={{ left: i * 64 }}
+                    style={{ left: i * 64 }}
+                  />
+                ))}
+                {/* Half-hour grid line */}
+                <div
+                  key={`${h}-half`}
+                  className={`absolute border-b border-border bg-secondary/20 w-[260px]`}
+                  style={{ height: HOUR_HEIGHT_PX, top: HOUR_HEIGHT_PX / 2 }}
+                />
+              </div>
+            ))}
+          </div>
+
+          {/* Layer 2: bed columns with bookings — overlaid on top of the grid */}
+          <div className="absolute inset-0 flex z-10">
+            {Object.values(BedKey).map((bed) => (
+              <div key={bed} className="relative w-[128px] h-full">
+                {bookings
+                  .filter((b) => b.bedKey === bed)
+                  .map((b) => (
+                    <BookingBlock
+                      key={b.id ?? `${b.bedKey}-${b.startTime}-${b.date}`}
+                      booking={b}
+                      onClick={() => onBlockClick?.(b)}
+                      readOnly={readOnly}
+                      isMobile={isMobile}
+                    />
+                  ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  ) : (
     <div className="flex overflow-hidden flex-1">
       {/* Fixed left: bed labels */}
       <div className="flex flex-col flex-shrink-0 w-[80px] border-r border-border z-10 bg-background">
@@ -515,6 +641,7 @@ export function BookingTimeline({
           <div
             key={bed}
             className="flex items-center justify-center h-[72px] border-b border-border"
+            style={{ height: 72 }}
           >
             <Badge
               variant="outline"
@@ -578,6 +705,7 @@ export function BookingTimeline({
                     booking={b}
                     onClick={() => onBlockClick?.(b)}
                     readOnly={readOnly}
+                    isMobile={isMobile}
                   />
                 ))}
             </div>
@@ -1196,74 +1324,17 @@ export function BookingEditDrawer({
 export function VacancyPopup({
   isOpen,
   onClose,
-  vacancies,
-  selectedOption,
-  handleChange,
+  bookings,
 }: {
   isOpen: boolean;
   onClose: () => void;
-  vacancies: VacancyState[];
-  selectedOption: number;
-  handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  //   vacancies: VacancyState[];
+  bookings: Partial<Booking>[];
 }) {
-  return (
-    <InfoPopup isOpen={isOpen} onClose={onClose} title="Giường trống">
-      {/* {vacancies?.length === 0 ? (
-        <div>
-          <p style={{ color: 'red' }}>Hiện giờ đang full lịch</p>
-        </div>
-      ) : ( */}
-      <div>
-        <form style={{ display: 'flex' }}>
-          {Object.values(RIGHT_NOW_VACANCY_MINS)
-            .filter((min): min is number => typeof min === 'number')
-            .map((min: number) => (
-              <label key={min} style={{ marginLeft: '10px' }}>
-                <input
-                  type="radio"
-                  name="option"
-                  value={String(min)}
-                  checked={selectedOption === min}
-                  onChange={handleChange}
-                  style={{ cursor: 'pointer' }}
-                />
-                {`${min}p`}
-              </label>
-            ))}
-        </form>
-        <div>
-          {vacancies.map(({ bedKey, available, nowStartTime, waitTime }) => (
-            <div key={bedKey as string} style={{ whiteSpace: 'pre-wrap' }}>
-              {available ? (
-                <p
-                  //   style={{ whiteSpace: 'pre-line' }}
-                  style={{ color: 'Chartreuse' }}
-                >
-                  Giường {bedKey} trống lúc {nowStartTime}, chờ{' '}
-                  <span style={{ color: 'DarkOrange' }}>{waitTime}</span> phút.
-                </p>
-              ) : (
-                <p style={{ color: 'Crimson' }}>
-                  Giường {bedKey} đang kẹt lịch
-                </p>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-      {/* )} */}
-    </InfoPopup>
+  const [selectedOption, setSelectedOption] = useState(
+    RIGHT_NOW_VACANCY_MINS.OPTION_2
   );
-}
-
-export function NowVacancy({ bookings }: { bookings: Partial<Booking>[] }) {
-  const [isPopupOpen, setIsPopupOpen] = useState(false);
-
-  const [selectedOption, setSelectedOption] = useState(35);
-  const [rightNowVacancies, setRightNowVacancies] = useState<VacancyState[]>(
-    []
-  );
-
+  const [vacancies, setVacancies] = useState<VacancyState[]>([]);
   function getRightNowVacancies(
     durationMins: number = 30,
     waitMins: number = 20
@@ -1310,12 +1381,6 @@ export function NowVacancy({ bookings }: { bookings: Partial<Booking>[] }) {
             continue;
           }
 
-          // minStartDiff = getMinuteDistance(nowStartTime, startTime!);
-          // if (minStartDiff >= durationMins) {
-          //     if (getMinuteDistance(nowStartTime, startTime!) < minStartDiff) {
-          //         minStartDiff = getMinuteDistance(nowStartTime, startTime!);
-          //     }
-          // }
           if (getMinuteDistance(nowStartTime, startTime!) < minStartDiff) {
             minStartDiff = getMinuteDistance(nowStartTime, startTime!);
           }
@@ -1340,11 +1405,196 @@ export function NowVacancy({ bookings }: { bookings: Partial<Booking>[] }) {
     return rightNowVacancies;
   }
 
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const minNum = Number(event.target.value);
+  const handleChange = (minNum: number) => {
     setSelectedOption(minNum);
-    setRightNowVacancies(getRightNowVacancies(minNum));
+    setVacancies(getRightNowVacancies(minNum));
   };
+
+  return (
+    <InfoPopup
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Giường trống ngay bây giờ"
+    >
+      <div>
+        <form style={{ display: 'flex' }}>
+          {Object.values(RIGHT_NOW_VACANCY_MINS)
+            .filter((min): min is number => typeof min === 'number')
+            .map((min: number) => (
+              <div
+                key={min}
+                aria-checked={selectedOption === min}
+                onClick={() => handleChange(min)}
+                style={{
+                  cursor: 'pointer',
+                  marginLeft: '20px',
+                  width: '60px',
+                }}
+              >
+                <Badge
+                  variant="outline"
+                  className="text-[11px] font-medium px-2 py-1"
+                  style={{
+                    backgroundColor:
+                      selectedOption === min ? '#7C6AF7' : undefined,
+                  }}
+                >
+                  {min} phút
+                </Badge>
+              </div>
+              //   <label key={min} style={{ marginLeft: '10px' }}>
+              //     <input
+              //       type="radio"
+              //       name="option"
+              //       value={String(min)}
+              //       checked={selectedOption === min}
+              //       onChange={handleChange}
+              //       style={{ cursor: 'pointer' }}
+              //     />
+              //     {`${min}p`}
+              //   </label>
+            ))}
+        </form>
+        <div>
+          {vacancies?.length === 0 ? (
+            <p style={{ color: 'Crimson' }}>Đang full lịch.</p>
+          ) : (
+            vacancies.map(({ bedKey, available, nowStartTime, waitTime }) => (
+              <div key={bedKey as string} style={{ whiteSpace: 'pre-wrap' }}>
+                {available && (
+                  <p
+                    //   style={{ whiteSpace: 'pre-line' }}
+                    style={{ color: 'Chartreuse' }}
+                  >
+                    Giường {bedKey} trống lúc {nowStartTime}, chờ{' '}
+                    <span style={{ color: 'DarkOrange' }}>{waitTime}</span>{' '}
+                    phút.
+                  </p>
+                )}
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+      {/* )} */}
+    </InfoPopup>
+  );
+}
+
+// export function NowVacancy({ bookings }: { bookings: Partial<Booking>[] }) {
+//   const [isPopupOpen, setIsPopupOpen] = useState(false);
+
+//   const [selectedOption, setSelectedOption] = useState(35);
+//   const [rightNowVacancies, setRightNowVacancies] = useState<VacancyState[]>(
+//     []
+//   );
+
+//   function getRightNowVacancies(
+//     durationMins: number = 30,
+//     waitMins: number = 20
+//   ) {
+//     const rightNowVacancies: VacancyState[] = Object.values(BedKey).map(
+//       (bedKey) => {
+//         let nowStartTime: string = format(new Date(), 'HH:mm');
+//         let waitTime: number = 0;
+//         let minStartDiff: number = 24 * 60;
+
+//         const filteredBookings = bookings
+//           .filter((b) => b.bedKey === bedKey)
+//           .sort((a, b) => {
+//             // Use a fixed reference date (e.g., today's date) for accurate comparisons
+//             const baseDate = new Date().setHours(0, 0, 0, 0);
+
+//             return compareAsc(
+//               parse(a.startTime!, 'HH:mm', baseDate),
+//               parse(b.startTime!, 'HH:mm', baseDate)
+//             );
+//           });
+
+//         for (const { startTime, serviceId } of filteredBookings) {
+//           const endTime = getEndTime(
+//             startTime!,
+//             SERVICES.find((s) => s.id === serviceId)!.durationMin
+//           );
+
+//           if (
+//             getMinuteDistance(startTime!, nowStartTime) > 0 &&
+//             getMinuteDistance(nowStartTime, endTime) > 0
+//           ) {
+//             waitTime =
+//               getMinuteDistance(nowStartTime, endTime) + VACANCY_BUFFERED_MINS;
+//             if (waitTime <= waitMins) {
+//               nowStartTime = getEndTime(endTime, VACANCY_BUFFERED_MINS);
+//             } else {
+//               // no vacancy
+//               return {
+//                 bedKey,
+//                 available: false,
+//               };
+//             }
+//             continue;
+//           }
+
+//           // minStartDiff = getMinuteDistance(nowStartTime, startTime!);
+//           // if (minStartDiff >= durationMins) {
+//           //     if (getMinuteDistance(nowStartTime, startTime!) < minStartDiff) {
+//           //         minStartDiff = getMinuteDistance(nowStartTime, startTime!);
+//           //     }
+//           // }
+//           if (getMinuteDistance(nowStartTime, startTime!) < minStartDiff) {
+//             minStartDiff = getMinuteDistance(nowStartTime, startTime!);
+//           }
+//         }
+
+//         if (minStartDiff < durationMins + VACANCY_BUFFERED_MINS) {
+//           return {
+//             bedKey,
+//             available: false,
+//           };
+//         }
+
+//         return {
+//           bedKey,
+//           available: true,
+//           nowStartTime,
+//           waitTime,
+//         };
+//       }
+//     );
+
+//     return rightNowVacancies;
+//   }
+
+//   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+//     const minNum = Number(event.target.value);
+//     setSelectedOption(minNum);
+//     setRightNowVacancies(getRightNowVacancies(minNum));
+//   };
+
+//   return (
+//     // <main className="flex flex-col items-center justify-center min-h-screen p-24">
+//     <div className="inline-flex items-center">
+//       <Zap
+//         color="#f59e0b"
+//         size={32}
+//         strokeWidth={2.5}
+//         style={{ cursor: 'pointer' }}
+//         onClick={() => setIsPopupOpen((prev) => !prev)}
+//       />
+
+//       <VacancyPopup
+//         isOpen={isPopupOpen}
+//         onClose={() => setIsPopupOpen(false)}
+//         vacancies={rightNowVacancies}
+//         selectedOption={selectedOption}
+//         handleChange={handleChange}
+//       />
+//     </div>
+//   );
+// }
+
+export function NowVacancy({ bookings }: { bookings: Partial<Booking>[] }) {
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
 
   return (
     // <main className="flex flex-col items-center justify-center min-h-screen p-24">
@@ -1360,9 +1610,10 @@ export function NowVacancy({ bookings }: { bookings: Partial<Booking>[] }) {
       <VacancyPopup
         isOpen={isPopupOpen}
         onClose={() => setIsPopupOpen(false)}
-        vacancies={rightNowVacancies}
-        selectedOption={selectedOption}
-        handleChange={handleChange}
+        bookings={bookings}
+        // vacancies={rightNowVacancies}
+        // selectedOption={selectedOption}
+        // handleChange={handleChange}
       />
     </div>
   );
@@ -1373,11 +1624,13 @@ export function Scheduler({
   bookingsPromise,
   userId,
   userRole,
+  isMobile,
 }: {
   staffPromise: Promise<Partial<Staff>[]>;
   bookingsPromise: Promise<Partial<Booking>[]>;
   userId: string;
   userRole: UserRole;
+  isMobile: boolean;
 }) {
   const staff = use(staffPromise);
   //   const todayBooking = use(bookingsPromise).map((b) => {
@@ -1551,7 +1804,7 @@ export function Scheduler({
   }
 
   return (
-    <div className="flex flex-col h-[calc(100   vh-3.5rem)]">
+    <div className="flex flex-col h-[calc(100vh-3.5rem)]">
       <div className="flex items-center justify-between px-5 py-3.5 border-b border-border bg-background/80 backdrop-blur-sm flex-shrink-0">
         <div
           //   className={`flex items-center gap-3 ${isNavigating ? 'opacity-60 pointer-events-none' : ''}`}
@@ -1598,13 +1851,18 @@ export function Scheduler({
           className="bg-primary text-primary-foreground hover:bg-primary/90"
           readOnly={readOnly}
         >
-          <Plus className="size-4" /> Đặt lịch mới
+          <Plus className="size-4" />{' '}
+          <p className="hidden md:block">Đặt lịch mới</p>
         </Button>
       </div>
-      <div className="flex-1 overflow-auto p-4 md:p-6">
-        <BookingTimeline bookings={bookings} onBlockClick={setActiveBooking} />
+      <div className="flex-1 overflow-auto pl-0.2 md:p-6">
+        <BookingTimeline
+          bookings={bookings}
+          onBlockClick={setActiveBooking}
+          isMobile={isMobile}
+        />
       </div>
-      <div className="px-5 py-2.5 border-t border-border flex flex-wrap gap-4 flex-shrink-0">
+      <div className="md:px-5 px-2 py-2.5 border-t border-border flex flex-wrap md:gap-4 gap-2 flex-shrink-0">
         {Object.values(BookingStatus).map((s) => {
           const c = statusCfg(s);
           return (

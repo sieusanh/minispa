@@ -43,7 +43,7 @@ export default function Sidebar({ nav }: { nav: NavItem[] }) {
           );
         })}
       </nav>
-      <div className="p-4 border-t border-border">
+      {/* <div className="p-4 border-t border-border">
         <div className="flex items-center gap-3 text-sm">
           <div className="size-8 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-semibold shrink-0">
             AD
@@ -53,7 +53,7 @@ export default function Sidebar({ nav }: { nav: NavItem[] }) {
             <p className="text-xs text-muted-foreground mt-0.5">Quản lý</p>
           </div>
         </div>
-      </div>
+      </div> */}
     </aside>
   );
 }

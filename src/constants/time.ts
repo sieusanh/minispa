@@ -13,4 +13,6 @@ export const TIMELINE_TOTAL_MIN = TIMELINE_END_MIN - TIMELINE_START_MIN; // 840
 // export const HOUR_WIDTH_PX = 120; // px per hour
 // export const HOUR_WIDTH_PX = 160; // px per hour
 export const HOUR_WIDTH_PX = 98; // px per hour
+// export const HOUR_HEIGHT_PX = 72; // px per hour
+export const HOUR_HEIGHT_PX = 104; // px per hour
 export const TOTAL_WIDTH_PX = (TIMELINE_TOTAL_MIN / 60) * HOUR_WIDTH_PX; // 1680px

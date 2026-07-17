@@ -12,6 +12,10 @@ export default async function proxy(req: NextRequest) {
     const path = req.nextUrl.pathname;
     const isProtectedRoute = protectedRoutes.includes(path);
     const isPublicRoute = publicRoutes.includes(path);
+    const requestHeaders = new Headers(req.headers);
+    const userAgent = requestHeaders.get('user-agent') ?? '';
+    const isMobile: boolean = /Mobile|Android|iPhone|iPad/i.test(userAgent);
+    requestHeaders.set('x-is-mobile', isMobile ? 'MOBILE' : '');
 
     if (isPublicRoute) {
       //   return NextResponse.redirect(new URL(path, req.url)); // wrong logic
@@ -40,7 +44,6 @@ export default async function proxy(req: NextRequest) {
     }
 
     // 5. Clone the request and inject user profile claims into custom headers
-    const requestHeaders = new Headers(req.headers);
     requestHeaders.set('x-user-id', id as string);
     requestHeaders.set('x-user-username', username as string);
     requestHeaders.set('x-user-name', encodeURIComponent(name as string));

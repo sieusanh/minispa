@@ -1,5 +1,9 @@
 import { Booking } from '@/types/booking';
-import { TIMELINE_START_MIN, HOUR_WIDTH_PX } from '@/constants/time';
+import {
+  TIMELINE_START_MIN,
+  HOUR_WIDTH_PX,
+  HOUR_HEIGHT_PX,
+} from '@/constants/time';
 import { SERVICES } from '@/constants/config';
 import { isSameDay, parse, differenceInMinutes } from 'date-fns';
 
@@ -51,6 +55,11 @@ export const HOUR_MARKS: string[] = Array.from({ length: 15 }, (_, i) =>
   minToTime(TIMELINE_START_MIN + i * 60)
 );
 
+export const MOBILE_HOUR_MARKS: string[] = Array.from(
+  { length: 15 },
+  (_, i) => `${8 + i}h`
+);
+
 export function convertTimeToPM(time24h: string, delimiter: string = 'h') {
   // Split the string into hours and minutes
   const [hours24, minutes] = time24h.split(':').map(Number);
@@ -58,7 +67,7 @@ export function convertTimeToPM(time24h: string, delimiter: string = 'h') {
   // Convert to 12-hour format
   const hours12 = hours24 % 12 || 12;
 
-  return `${hours12}${delimiter}${minutes}`;
+  return `${hours12}${delimiter}${minutes > 0 ? minutes : ''}`;
 }
 
 export function getEndTime(startTime: string, durationMinutes: number) {
@@ -115,7 +124,16 @@ export function timeToLeftPx(time: string): number {
   return ((timeToMin(time) - TIMELINE_START_MIN) / 60) * HOUR_WIDTH_PX;
 }
 
+export function timeToTopPx(time: string): number {
+  return ((timeToMin(time) - TIMELINE_START_MIN) / 60) * HOUR_HEIGHT_PX;
+}
+
 // duration in minutes → width in px
-export function durationToPx(durationMin: number): number {
+export function durationToWidthPx(durationMin: number): number {
   return (durationMin / 60) * HOUR_WIDTH_PX;
+}
+
+// duration in minutes → height in px
+export function durationToHeightPx(durationMin: number): number {
+  return (durationMin / 60) * HOUR_HEIGHT_PX;
 }

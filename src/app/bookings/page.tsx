@@ -260,6 +260,7 @@ export default async function BookingPage() {
   // Retrieve the custom headers set by the middleware
   const userId = headersList.get('x-user-id')!;
   const userRole = headersList.get('x-user-role')! as UserRole;
+  const isMobile: boolean = headersList.get('x-is-mobile') ? true : false;
 
   const staffPromise = findAllStaff();
   const bookingsPromise = findBookingsByDate(getToday(), userId);
@@ -272,6 +273,7 @@ export default async function BookingPage() {
       bookingsPromise={bookingsPromise}
       userId={userId}
       userRole={userRole}
+      isMobile={isMobile}
     />
   );
 }

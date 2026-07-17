@@ -42,7 +42,7 @@ export default function AppHeader({
         className="font-semibold text-sm tracking-tight text-foreground mr-auto flex items-center gap-2"
       >
         <span className="text-primary text-base">✦</span>
-        <span>Tiệm Gội Đầu Dưỡng Sinh</span>
+        <span className="hidden md:block">Tiệm Gội Đầu Dưỡng Sinh</span>
       </Link>
       {isAuthenticated && (
         <div className="flex items-center gap-2">
