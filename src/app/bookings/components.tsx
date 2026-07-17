@@ -540,20 +540,17 @@ export function BookingTimeline({
 
   // Current
   return isMobile ? (
-    <div className="flex flex-col overflow-hidden w-[280px]">
+    <div className="flex flex-col overflow-hidden w-[370px]">
       {/* Fixed top: bed labels */}
       <div
         // className="flex justify-around flex-shrink-0 w-[160px] border-r border-border z-10 bg-background"
-        className="flex justify-around w-[254px] border-l border-border z-10 bg-background ml-[18px]"
+        className="flex justify-around w-[350px] border-l border-border z-10 bg-background ml-[22px] gap-0"
       >
         {/* <div className="h-[36px] border-b border-border" /> */}
         {Object.values(BedKey).map((bed) => (
           <div key={bed}>
             <div className="flex items-center justify-center w-[6px] h-[56px]">
-              <Badge
-                variant="outline"
-                className="text-[11px] font-medium px-1 py-1"
-              >
+              <Badge variant="outline" className="text-[11px] font-medium p-1">
                 Giường {bed}
               </Badge>
             </div>
@@ -563,9 +560,9 @@ export function BookingTimeline({
 
       {/* Scrollable right — min-w-0 is the critical fix */}
       {/* scrollbar-none flex-1 */}
-      <div className="overflow-x-auto flex scrollbar-none border-t border-border">
+      <div className="overflow-x-auto flex border-t border-border">
         {/* Time header column */}
-        <div className="relative border-b border-border top-[-4px]">
+        <div className="relative border-b border-border top-[-4px] pl-[4px] pr-0">
           {MOBILE_HOUR_MARKS.map((h, i) => (
             <div
               key={h}
@@ -581,16 +578,16 @@ export function BookingTimeline({
 
         {/* Grid + bookings — merged into ONE relative container so they overlap */}
         <div
-          className="relative ml-[19px]"
+          className="relative ml-[18px]"
           //   style={{ width: 254, height: TOTAL_WIDTH_PX }}
-          style={{ width: 360, height: 1600 }}
+          style={{ width: 360, height: 1000 }}
         >
           {/* Layer 1: hour grid lines — background */}
           <div className="absolute inset-0">
             {MOBILE_HOUR_MARKS.map((h, k) => (
               <div
                 key={h}
-                className="relative border-b border-border bg-secondary/40 w-[260px]"
+                className="relative border-b border-border bg-secondary/40 w-[350px]"
                 style={{ height: HOUR_HEIGHT_PX }}
               >
                 {Object.values(BedKey).map((bed, i) => (
@@ -598,13 +595,13 @@ export function BookingTimeline({
                     key={bed}
                     className="absolute top-0 bottom-0 border-l border-border/40"
                     // style={{ left: i * 64 }}
-                    style={{ left: i * 64 }}
+                    style={{ left: i * 87 }}
                   />
                 ))}
                 {/* Half-hour grid line */}
                 <div
                   key={`${h}-half`}
-                  className={`absolute border-b border-border bg-secondary/20 w-[260px]`}
+                  className={`absolute border-b border-border bg-secondary/20 w-[350px]`}
                   style={{ height: HOUR_HEIGHT_PX, top: HOUR_HEIGHT_PX / 2 }}
                 />
               </div>
@@ -614,7 +611,7 @@ export function BookingTimeline({
           {/* Layer 2: bed columns with bookings — overlaid on top of the grid */}
           <div className="absolute inset-0 flex z-10">
             {Object.values(BedKey).map((bed) => (
-              <div key={bed} className="relative w-[128px] h-full">
+              <div key={bed} className="relative w-[86px] h-full mx-0.5">
                 {bookings
                   .filter((b) => b.bedKey === bed)
                   .map((b) => (
