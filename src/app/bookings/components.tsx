@@ -540,7 +540,8 @@ export function BookingTimeline({
 
   // Current
   return isMobile ? (
-    <div className="flex flex-col overflow-hidden w-[370px]">
+    // <div className="flex flex-col overflow-hidden w-[370px]">
+    <div className="flex flex-col w-[370px] overflow-y-auto max-h-[calc(100vh-Npx)]">
       {/* Fixed top: bed labels */}
       <div
         // className="flex justify-around flex-shrink-0 w-[160px] border-r border-border z-10 bg-background"
