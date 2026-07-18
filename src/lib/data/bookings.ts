@@ -64,6 +64,7 @@ export async function findBookingsByDate(
   //   });
   //   cacheTag(bookingDateTag(date));
   const bookingDate = date.toLocaleDateString('en-CA');
+  console.log('============= findBookingsByDate bookingDate ', bookingDate);
 
   const supabase: SupabaseClient = createAdminClient();
   let query = supabase

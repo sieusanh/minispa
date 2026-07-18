@@ -101,8 +101,6 @@ export function runRealtimeBookings(
       },
       (payload) => {
         const { eventType, new: newRow, old: oldRow } = payload;
-        console.log('======= eventType ', eventType);
-        console.log('======= newRow ', newRow);
 
         if (eventType === 'INSERT') {
           const booking = transformBookingOutput(
