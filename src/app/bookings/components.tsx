@@ -541,8 +541,8 @@ export function BookingTimeline({
   // Current
   return isMobile ? (
     // <div className="flex flex-col overflow-hidden w-[370px]">
-    // <div className="flex flex-col w-[370px] overflow-y-auto max-h-[calc(100vh-Npx)]">
-    <div className="flex flex-col w-[370px] overflow-y-auto max-h-[70vh]">
+    <div className="flex flex-col w-[370px] overflow-y-auto max-h-[calc(100vh-Npx)]">
+      {/* // <div className="flex flex-col w-[370px] overflow-y-auto max-h-[70vh]"> */}
       {/* Fixed top: bed labels */}
       <div
         // className="flex justify-around flex-shrink-0 w-[160px] border-r border-border z-10 bg-background"
@@ -863,13 +863,13 @@ export function BookingDrawer({
               </ToggleGroup>
             </Field>
 
-            <DatePickerField
+            {/* <DatePickerField
               label="Ngày *"
               //   value={date || form.date!}
               value={form.date! || date}
               onChange={(d) => upd('date', d || date)}
               disabled={readOnly}
-            />
+            /> */}
 
             <Field label="Giờ bắt đầu *">
               {/* <Select
@@ -1149,12 +1149,12 @@ export function BookingEditDrawer({
               </ToggleGroup>
             </Field>
 
-            <DatePickerField
+            {/* <DatePickerField
               label="Ngày *"
               value={form.date!}
               onChange={(d) => upd('date', d)}
               disabled={readOnly}
-            />
+            /> */}
 
             <Field label="Giờ bắt đầu *">
               <Input
@@ -1813,7 +1813,7 @@ export function Scheduler({
             isNavigating && 'opacity-60 pointer-events-none'
           )}
         >
-          <button
+          {/* <button
             // onClick={() => setDate((d) => addDays(d, -1))}
             onClick={() => {
               handleDateChange(addDays(date, -1));
@@ -1822,7 +1822,7 @@ export function Scheduler({
             style={{ cursor: 'pointer' }}
           >
             <ChevronLeft className="size-4" />
-          </button>
+          </button> */}
           <div>
             <h1 className="font-semibold text-sm text-foreground capitalize">
               {format(date, 'EEEE, dd/MM/yyyy', { locale: vi })}
@@ -1831,14 +1831,17 @@ export function Scheduler({
               {bookings.length} lịch đặt
             </p>
           </div>
-          <button
-            // onClick={() => setDate((d) => addDays(d, 1))}
+          {/* <button
             onClick={() => handleDateChange(addDays(date, 1))}
             className="size-8 rounded-md border border-border flex items-center justify-center hover:bg-secondary transition-colors"
             style={{ cursor: 'pointer' }}
           >
             <ChevronRight className="size-4" />
-          </button>
+          </button> */}
+          <CalendarDays
+            className="size-8 cursor-pointer hover:bg-grey-700"
+            onClick={() => handleDateChange(addDays(date, 1))}
+          />
         </div>
         {/* <div style={{ cursor: 'pointer' }}>
           <Zap color="#f59e0b" size={32} strokeWidth={2.5} />
