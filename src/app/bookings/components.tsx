@@ -545,20 +545,35 @@ export function BookingTimeline({
     // <div className="flex flex-col overflow-hidden w-[370px]">
     // <div className="flex flex-col w-[370px] overflow-y-auto max-h-[calc(100vh-Npx)]">
     // <div className="flex flex-col w-[370px] overflow-y-auto max-h-[70vh]">
+    // OLD
     // <div className="flex flex-col w-[370px] overflow-y-auto">
-    <div className="flex flex-col w-[370px]">
-      {/* <div className="flex flex-col w-[370px]"> */}
-      {/* Fixed top: bed labels */}
-      <div className="flex justify-around w-[350px] border-l border-b border-border z-30 bg-background ml-[22px] gap-0 sticky top-0 shadow-sm">
-        {/* <div className="flex justify-around w-[350px] border-l border-border z-10 bg-background ml-[22px] gap-0 sticky top-0"> */}
-        {/* <div className="h-[36px] border-b border-border" /> */}
+    //   {/* // <div className="flex flex-col w-[370px]"> */}
+    //   {/* <div className="flex flex-col w-[370px]"> */}
+    //   {/* Fixed top: bed labels */}
+    //   <div className="flex justify-around w-[350px] border-l border-b border-border z-30 bg-background ml-[22px] gap-0 sticky top-0 shadow-sm">
+    //     {/* <div className="flex justify-around w-[350px] border-l border-border z-10 bg-background ml-[22px] gap-0 sticky top-0"> */}
+    //     {/* <div className="h-[36px] border-b border-border" /> */}
+    //     {Object.values(BedKey).map((bed) => (
+    //         <div key={bed}> className="flex items-center justify-center w-[6px] h-[30px]">
+    //           <Badge variant="outline" className="text-[11px] font-medium p-1">
+    //             Giường {bed}
+    //           </Badge>
+    //         </div>
+    //     ))}
+    //   </div>
+
+    // NEW
+    <div className="flex flex-col w-[370px] overflow-y-auto max-h-[580px]">
+      {/* Sticky bed labels */}
+      <div className="sticky top-0 z-30 flex justify-around w-[350px] border-l border-b border-border bg-background ml-[22px] gap-0 shadow-sm">
         {Object.values(BedKey).map((bed) => (
-          <div key={bed}>
-            <div className="flex items-center justify-center w-[6px] h-[30px]">
-              <Badge variant="outline" className="text-[11px] font-medium p-1">
-                Giường {bed}
-              </Badge>
-            </div>
+          <div
+            key={bed}
+            className="flex items-center justify-center h-[56px] w-[64px]"
+          >
+            <Badge variant="outline" className="text-[11px] font-medium p-1">
+              Giường {bed}
+            </Badge>
           </div>
         ))}
       </div>
@@ -1860,8 +1875,10 @@ export function Scheduler({
         </Button>
       </div>
       {/* <div className="overflow-auto pl-0.2 md:p-6 border-2 border-red-500 max-h-[calc(100vh-3.5rem-140px)]"> */}
-      <div className="overflow-auto pl-0.2 md:p-6 max-h-[580px]">
-        {/* <div className="overflow-auto pl-0.2 md:p-6 max-h-[calc(100vh-...)]"> */}
+      {/* <div className="overflow-auto pl-0.2 md:p-6 max-h-[calc(100vh-...)]"> */}
+      {/* <div className="overflow-auto pl-0.2 md:p-6 max-h-[580px]"> */}
+      {/* <div className="overflow-auto pl-0.2 md:p-6 max-h-[580px]"> */}
+      <div className="pl-0.2 md:p-6">
         <BookingTimeline
           bookings={bookings}
           onBlockClick={setActiveBooking}
