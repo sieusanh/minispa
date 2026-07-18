@@ -563,7 +563,8 @@ export function BookingTimeline({
     //   </div>
 
     // NEW
-    <div className="flex flex-col w-[370px] overflow-y-auto max-h-[580px]">
+    // <div className="flex flex-col w-[370px] overflow-y-auto max-h-[580px]">
+    <div className="flex flex-col w-[370px] overflow-y-auto h-full">
       {/* Sticky bed labels */}
       <div className="sticky top-0 z-30 flex justify-around w-[350px] border-l border-b border-border bg-background ml-[22px] gap-0 shadow-sm">
         {Object.values(BedKey).map((bed) => (
@@ -1879,14 +1880,16 @@ export function Scheduler({
       {/* <div className="overflow-auto pl-0.2 md:p-6 max-h-[calc(100vh-...)]"> */}
       {/* <div className="overflow-auto pl-0.2 md:p-6 max-h-[580px]"> */}
       {/* <div className="overflow-auto pl-0.2 md:p-6 max-h-[580px]"> */}
-      <div className="pl-0.2 md:p-6">
+      {/* <div className="pl-0.2 md:p-6"> */}
+      <div className="pl-0.2 md:p-6 flex-1 min-h-0 overflow-hidden">
         <BookingTimeline
           bookings={bookings}
           onBlockClick={setActiveBooking}
           isMobile={isMobile}
         />
       </div>
-      <p className="text-xs text-muted-foreground mt-[1px]">
+      {/* <p className="text-xs text-muted-foreground mt-[1px]"> */}
+      <p className="text-xs text-muted-foreground mt-[1px] flex-shrink-0 px-2">
         {bookings.length} lịch đặt
       </p>
       <div className="md:px-5 px-2 py-2.5 border-t border-border flex flex-wrap md:gap-4 gap-2 flex-shrink-0">
