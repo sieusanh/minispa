@@ -569,7 +569,7 @@ export function BookingTimeline({
         {Object.values(BedKey).map((bed) => (
           <div
             key={bed}
-            className="flex items-center justify-center h-[56px] w-[64px]"
+            className="flex items-center justify-center h-[30px] w-[64px]"
           >
             <Badge variant="outline" className="text-[11px] font-medium p-1">
               Giường {bed}
@@ -600,7 +600,8 @@ export function BookingTimeline({
           className="relative ml-[18px]"
           //   style={{ width: 254, height: TOTAL_WIDTH_PX }}
           //   style={{ width: 360, height: 1000 }}
-          style={{ width: 360, height: totalHeight }}
+          //   style={{ width: 360, height: totalHeight }}
+          style={{ width: 360, height: 580 }}
         >
           {/* Layer 1: hour grid lines — background */}
           <div className="absolute inset-0">
