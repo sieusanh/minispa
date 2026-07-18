@@ -412,7 +412,8 @@ export function BookingBlock({
             className="text-[10px] truncate font-medium"
             style={{ color: cfg.color, whiteSpace: 'pre-wrap' }}
           >
-            {`${startTimeStr} ${isFastService ? '' : '-'} ${endTimeStr}`}
+            {/* {`${startTimeStr} ${isFastService ? '' : '-'} ${endTimeStr}`} */}
+            {`${startTimeStr} - ${endTimeStr}`}
           </p>
           <p>{staffId === ADMIN.id ? null : staffName}</p>
         </div>
@@ -539,19 +540,21 @@ export function BookingTimeline({
   //   );
 
   // Current
+  const totalHeight = MOBILE_HOUR_MARKS.length * HOUR_HEIGHT_PX;
   return isMobile ? (
     // <div className="flex flex-col overflow-hidden w-[370px]">
     // <div className="flex flex-col w-[370px] overflow-y-auto max-h-[calc(100vh-Npx)]">
-    <div className="flex flex-col w-[370px] overflow-y-auto max-h-[70vh]">
+    // <div className="flex flex-col w-[370px] overflow-y-auto max-h-[70vh]">
+    // <div className="flex flex-col w-[370px] overflow-y-auto">
+    <div className="flex flex-col w-[370px]">
+      {/* <div className="flex flex-col w-[370px]"> */}
       {/* Fixed top: bed labels */}
-      <div
-        // className="flex justify-around flex-shrink-0 w-[160px] border-r border-border z-10 bg-background"
-        className="flex justify-around w-[350px] border-l border-border z-10 bg-background ml-[22px] gap-0"
-      >
+      <div className="flex justify-around w-[350px] border-l border-b border-border z-30 bg-background ml-[22px] gap-0 sticky top-0 shadow-sm">
+        {/* <div className="flex justify-around w-[350px] border-l border-border z-10 bg-background ml-[22px] gap-0 sticky top-0"> */}
         {/* <div className="h-[36px] border-b border-border" /> */}
         {Object.values(BedKey).map((bed) => (
           <div key={bed}>
-            <div className="flex items-center justify-center w-[6px] h-[56px]">
+            <div className="flex items-center justify-center w-[6px] h-[30px]">
               <Badge variant="outline" className="text-[11px] font-medium p-1">
                 Giường {bed}
               </Badge>
@@ -577,12 +580,12 @@ export function BookingTimeline({
             </div>
           ))}
         </div>
-
         {/* Grid + bookings — merged into ONE relative container so they overlap */}
         <div
           className="relative ml-[18px]"
           //   style={{ width: 254, height: TOTAL_WIDTH_PX }}
-          style={{ width: 360, height: 1000 }}
+          //   style={{ width: 360, height: 1000 }}
+          style={{ width: 360, height: totalHeight }}
         >
           {/* Layer 1: hour grid lines — background */}
           <div className="absolute inset-0">
@@ -595,7 +598,7 @@ export function BookingTimeline({
                 {Object.values(BedKey).map((bed, i) => (
                   <div
                     key={bed}
-                    className="absolute top-0 bottom-0 border-l border-border/40"
+                    className="absolute top-0 bottom-0 border-l-2 border-border/40"
                     // style={{ left: i * 64 }}
                     style={{ left: i * 87 }}
                   />
@@ -603,7 +606,7 @@ export function BookingTimeline({
                 {/* Half-hour grid line */}
                 <div
                   key={`${h}-half`}
-                  className={`absolute border-b border-border bg-secondary/20 w-[350px]`}
+                  className={`absolute left-[-20px] border-t border-b border-border bg-secondary/20 w-[370px]`}
                   style={{ height: HOUR_HEIGHT_PX, top: HOUR_HEIGHT_PX / 2 }}
                 />
               </div>
@@ -1744,7 +1747,7 @@ export function Scheduler({
   }, []);
 
   function handleDateChange(newDate: Date) {
-    setDate(newDate);
+    // setDate(newDate);
     startNavigation(async () => {
       const fresh = await findBookingsByDate(newDate, userId);
 
@@ -1755,6 +1758,7 @@ export function Scheduler({
         status: deriveStatus(b, now), // ← override cached status with derived
       }));
 
+      setDate(newDate);
       setBookings(withDerivedStatus);
     });
   }
@@ -1851,18 +1855,20 @@ export function Scheduler({
           className="bg-primary text-primary-foreground hover:bg-primary/90"
           readOnly={readOnly}
         >
-          <Plus className="size-8" />{' '}
+          <Plus className="md:size-4 size-9 p-1" />{' '}
           <p className="hidden md:block">Đặt lịch mới</p>
         </Button>
       </div>
-      <div className="flex-1 overflow-auto pl-0.2 md:p-6">
+      {/* <div className="overflow-auto pl-0.2 md:p-6 border-2 border-red-500 max-h-[calc(100vh-3.5rem-140px)]"> */}
+      <div className="overflow-auto pl-0.2 md:p-6 max-h-[580px]">
+        {/* <div className="overflow-auto pl-0.2 md:p-6 max-h-[calc(100vh-...)]"> */}
         <BookingTimeline
           bookings={bookings}
           onBlockClick={setActiveBooking}
           isMobile={isMobile}
         />
       </div>
-      <p className="text-xs text-muted-foreground pt-0">
+      <p className="text-xs text-muted-foreground mt-[1px]">
         {bookings.length} lịch đặt
       </p>
       <div className="md:px-5 px-2 py-2.5 border-t border-border flex flex-wrap md:gap-4 gap-2 flex-shrink-0">
