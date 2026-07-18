@@ -13,6 +13,7 @@ import {
   transformBookingOutput,
   bookingDateTag,
 } from '@/utils/bookings';
+import { getDateWithOffset } from '@/utils/time';
 
 export async function findBookingById(id: string) {
   const supabase: SupabaseClient = await createServerClient();
@@ -48,6 +49,7 @@ export async function checkVacancy(date: Date, fromTime: string) {
 
 export async function findBookingsByDate(
   date: Date,
+  tzOffsetMins: number,
   staffId: string = ADMIN.id
 ) {
   //   'use cache';
@@ -63,8 +65,10 @@ export async function findBookingsByDate(
   //     expire: 3600, // 12 hours until expired
   //   });
   //   cacheTag(bookingDateTag(date));
-  const bookingDate = date.toLocaleDateString('en-CA');
-  console.log('============= findBookingsByDate bookingDate ', bookingDate);
+
+  const bookingDate = getDateWithOffset(date, tzOffsetMins).toLocaleDateString(
+    'en-CA'
+  );
 
   const supabase: SupabaseClient = createAdminClient();
   let query = supabase

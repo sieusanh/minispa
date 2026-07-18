@@ -11,7 +11,7 @@
 import { headers } from 'next/headers';
 import { findAllStaff } from '@/lib/data/staff';
 import { findBookingsByDate } from '@/lib/data/bookings';
-import { getToday } from '@/utils/time';
+import { getToday, getTZOffsetMins } from '@/utils/time';
 import { Scheduler } from './components';
 import { UserRole } from '@/types';
 
@@ -263,7 +263,11 @@ export default async function BookingPage() {
   const isMobile: boolean = headersList.get('x-is-mobile') ? true : false;
 
   const staffPromise = findAllStaff();
-  const bookingsPromise = findBookingsByDate(getToday(), userId);
+  const bookingsPromise = findBookingsByDate(
+    getToday(),
+    getTZOffsetMins(),
+    userId
+  );
   //   const todayQueryParam = { date: new Date() };
   //   const bookings = findAllBookings({ where: todayQueryParam });
 

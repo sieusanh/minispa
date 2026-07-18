@@ -84,6 +84,7 @@ import {
   durationToHeightPx,
   getMinuteDistance,
   getToday,
+  getTZOffsetMins,
 } from '@/utils/time';
 import { formatPrice } from '@/utils/price';
 import {
@@ -1765,8 +1766,13 @@ export function Scheduler({
 
   function handleDateChange(newDate: Date) {
     // setDate(newDate);
+
     startNavigation(async () => {
-      const fresh = await findBookingsByDate(newDate, userId);
+      const fresh = await findBookingsByDate(
+        newDate,
+        getTZOffsetMins(),
+        userId
+      );
 
       // Re-derive status on arrival so cache staleness doesn't matter
       const now = new Date();

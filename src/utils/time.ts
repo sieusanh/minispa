@@ -11,6 +11,10 @@ export function getToday(): Date {
   return new Date();
 }
 
+export function getTZOffsetMins() {
+  return new Date().getTimezoneOffset();
+}
+
 export function timeToMin(t: string) {
   const [h, m] = t.split(':').map(Number);
   return h * 60 + m;
