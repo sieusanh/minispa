@@ -138,7 +138,7 @@ export function DatePickerField({
           >
             <Calendar className="size-4 text-muted-foreground flex-shrink-0" />
             {value ? (
-              format(value, 'dd/MM/yyyy', { locale: vi })
+              format(value, 'EEEE, dd/MM/yyyy', { locale: vi })
             ) : (
               <span className="text-muted-foreground">Chọn ngày</span>
             )}
@@ -738,7 +738,6 @@ export function BookingDrawer({
   const [form, setForm] = useState<Partial<Booking>>(EMPTY_DRAFT);
   const [errs, setErrs] = useState<Partial<Record<keyof Booking, string>>>({});
   const [conflict, setConflict] = useState(false);
-
   function upd<K extends keyof Booking>(k: K, v: Booking[K]) {
     setForm((p) => ({ ...p, [k]: v }));
     setErrs((p) => ({ ...p, [k]: undefined }));
@@ -765,6 +764,7 @@ export function BookingDrawer({
 
     const savedBooking = { ...form };
     savedBooking.status = deriveStatus(savedBooking);
+    savedBooking.date = date;
     onSave(savedBooking);
     handleClose();
   }
@@ -1804,7 +1804,7 @@ export function Scheduler({
 
   return (
     <div className="flex flex-col h-[calc(100vh-3.5rem)]">
-      <div className="flex items-center justify-between px-5 py-3.5 border-b border-border bg-background/80 backdrop-blur-sm flex-shrink-0">
+      <div className="flex items-center justify-around px-1 md:px-5 py-3.5 border-b border-border bg-background/80 backdrop-blur-sm flex-shrink-0">
         <div
           //   className={`flex items-center gap-3 ${isNavigating ? 'opacity-60 pointer-events-none' : ''}`}
           //   className="flex items-center justify-between gap-2 sm:justify-start sm:gap-3"
@@ -1822,7 +1822,7 @@ export function Scheduler({
             style={{ cursor: 'pointer' }}
           >
             <ChevronLeft className="size-4" />
-          </button> */}
+          </button>
           <div>
             <h1 className="font-semibold text-sm text-foreground capitalize">
               {format(date, 'EEEE, dd/MM/yyyy', { locale: vi })}
@@ -1831,21 +1831,19 @@ export function Scheduler({
               {bookings.length} lịch đặt
             </p>
           </div>
-          {/* <button
+          <button
             onClick={() => handleDateChange(addDays(date, 1))}
             className="size-8 rounded-md border border-border flex items-center justify-center hover:bg-secondary transition-colors"
             style={{ cursor: 'pointer' }}
           >
             <ChevronRight className="size-4" />
           </button> */}
-          <CalendarDays
-            className="size-8 cursor-pointer hover:bg-grey-700"
-            onClick={() => handleDateChange(addDays(date, 1))}
+          <DatePickerField
+            value={date}
+            onChange={(d) => handleDateChange(d)}
+            disabled={readOnly}
           />
         </div>
-        {/* <div style={{ cursor: 'pointer' }}>
-          <Zap color="#f59e0b" size={32} strokeWidth={2.5} />
-        </div> */}
         <NowVacancy bookings={bookings} />
         <Button
           size="sm"
@@ -1853,7 +1851,7 @@ export function Scheduler({
           className="bg-primary text-primary-foreground hover:bg-primary/90"
           readOnly={readOnly}
         >
-          <Plus className="size-4" />{' '}
+          <Plus className="size-8" />{' '}
           <p className="hidden md:block">Đặt lịch mới</p>
         </Button>
       </div>
@@ -1864,6 +1862,9 @@ export function Scheduler({
           isMobile={isMobile}
         />
       </div>
+      <p className="text-xs text-muted-foreground pt-0">
+        {bookings.length} lịch đặt
+      </p>
       <div className="md:px-5 px-2 py-2.5 border-t border-border flex flex-wrap md:gap-4 gap-2 flex-shrink-0">
         {Object.values(BookingStatus).map((s) => {
           const c = statusCfg(s);
