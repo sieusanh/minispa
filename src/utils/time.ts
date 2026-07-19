@@ -6,9 +6,16 @@ import {
 } from '@/constants/time';
 import { SERVICES } from '@/constants/config';
 import { isSameDay, parse, differenceInMinutes } from 'date-fns';
+import { toZonedTime, format } from 'date-fns-tz';
+
+const APP_TIMEZONE = 'Asia/Ho_Chi_Minh';
 
 export function getToday(): Date {
-  return new Date();
+  return toZonedTime(new Date(), APP_TIMEZONE);
+}
+
+export function getTodayString(): string {
+  return format(getToday(), 'yyyy-MM-dd', { timeZone: APP_TIMEZONE });
 }
 
 export function getTZOffsetMins() {
