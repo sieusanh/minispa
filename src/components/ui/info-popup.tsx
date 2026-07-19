@@ -42,7 +42,12 @@ export function InfoPopup({ isOpen, onClose, title, children }: PopupProps) {
       {/* Popup Content */}
       <div className="relative z-10 w-full max-w-md p-6 bg-popover text-popover-foreground rounded-2xl shadow-xl animate-scale-in border border-border">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-foreground">{title}</h3>
+          <h3
+            className="text-lg font-semibold text-foreground"
+            style={{ color: '#f59e0b' }}
+          >
+            {title}
+          </h3>
           <button
             onClick={onClose}
             className="p-1 text-muted-foreground transition-colors rounded-lg hover:bg-secondary hover:text-foreground"

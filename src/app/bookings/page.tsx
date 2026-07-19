@@ -10,7 +10,7 @@
 import { headers } from 'next/headers';
 import { findAllStaff } from '@/lib/data/staff';
 import { findBookingsByDate } from '@/lib/data/bookings';
-import { getToday } from '@/utils/time';
+import { getTodayString } from '@/utils/time';
 import { Scheduler } from './components';
 import { UserRole } from '@/types';
 
@@ -262,10 +262,8 @@ export default async function BookingPage() {
   const isMobile: boolean = headersList.get('x-is-mobile') ? true : false;
 
   const staffPromise = findAllStaff();
-  const today = getToday();
 
-  console.log('============== BookingPage today ', today);
-  const bookingsPromise = findBookingsByDate(getToday(), userId);
+  const bookingsPromise = findBookingsByDate(getTodayString(), userId);
   //   const todayQueryParam = { date: new Date() };
   //   const bookings = findAllBookings({ where: todayQueryParam });
 

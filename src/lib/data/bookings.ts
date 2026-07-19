@@ -48,7 +48,8 @@ export async function checkVacancy(date: Date, fromTime: string) {
 }
 
 export async function findBookingsByDate(
-  date: Date,
+  //   date: Date,
+  dateStr: string,
   staffId: string = ADMIN.id
 ) {
   //   'use cache';
@@ -68,13 +69,18 @@ export async function findBookingsByDate(
   //   const bookingDate = getDateWithOffset(date, tzOffsetMins).toLocaleDateString(
   //     'en-CA'
   //   );
-  const bookingDate = date.toLocaleDateString('en-CA');
+
+  //   const bookingDate = date.toLocaleDateString('en-CA');
+  //   const bookingDate = date.toISOString().split('T')[0];
+
+  //   console.log('========= findBookingsByDate bookingDate ', bookingDate);
 
   const supabase: SupabaseClient = createAdminClient();
   let query = supabase
     .from(TABLE_NAMES.BOOKINGS)
     .select('*')
-    .eq('date', bookingDate)
+    // .eq('date', bookingDate)
+    .eq('date', dateStr)
     .eq('is_active', true);
   //   .single();
 
@@ -135,12 +141,11 @@ export async function insertBooking(payload: Booking) {
 }
 
 export async function upsertBooking(
-  payload: Partial<Booking>
-  //   tzOffsetMins: number
+  payload: Partial<Booking>,
+  tzOffsetMins: number
 ) {
   // transmuting
-  const booking = toSnake(transformBookingInput(payload));
-
+  const booking = toSnake(transformBookingInput(payload, tzOffsetMins));
   //   const supabase = await createClient();
   const supabase: SupabaseClient = createAdminClient();
   const { data, error } = await supabase

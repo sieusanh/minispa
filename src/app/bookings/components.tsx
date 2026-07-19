@@ -85,6 +85,7 @@ import {
   getMinuteDistance,
   getToday,
   getTZOffsetMins,
+  getTodayString,
 } from '@/utils/time';
 import { formatPrice } from '@/utils/price';
 import {
@@ -1664,7 +1665,8 @@ export function Scheduler({
   //   });
   const todayBooking = use(bookingsPromise);
 
-  const [date, setDate] = useState<Date>(() => getToday());
+  //   const [date, setDate] = useState<Date>(() => getToday());
+  const [date, setDate] = useState<Date>(new Date());
   //   const [date, setDate] = useState<Date>(getToday());
   const [bookings, setBookings] = useState<Partial<Booking>[]>(todayBooking);
   const [createOpen, setCreateOpen] = useState(false);
@@ -1749,7 +1751,6 @@ export function Scheduler({
   // Client-only status computation: runs immediately on mount, then on interval
   useEffect(() => {
     const recomputeStatuses = () => {
-      //   const now = new Date('2026-07-15T08:40:52.398Z');
       const now = new Date();
       console.log('========== useEffect now ', now);
 
@@ -1768,7 +1769,8 @@ export function Scheduler({
     // setDate(newDate);
 
     startNavigation(async () => {
-      const fresh = await findBookingsByDate(newDate, userId);
+      const dateStr = getTodayString(newDate);
+      const fresh = await findBookingsByDate(dateStr, userId);
 
       // Re-derive status on arrival so cache staleness doesn't matter
       const now = new Date();
@@ -1797,8 +1799,8 @@ export function Scheduler({
 
   function handleSaveCreate(d: Partial<Booking>) {
     startSaving(async () => {
-      //   const offsetMins = new Date().getTimezoneOffset();
-      const { id } = await upsertBooking(d);
+      const offsetMins = new Date().getTimezoneOffset();
+      const { id } = await upsertBooking(d, offsetMins);
 
       if (!compareDateString(d.date!, date)) {
         return;
@@ -1811,7 +1813,7 @@ export function Scheduler({
   function handleSaveEdit(d: Partial<Booking>) {
     startSaving(async () => {
       const offsetMins = new Date().getTimezoneOffset();
-      await upsertBooking(d);
+      await upsertBooking(d, offsetMins);
 
       if (!compareDateString(d.date!, date)) {
         setBookings((prev) =>

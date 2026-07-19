@@ -5,18 +5,38 @@ import {
   HOUR_HEIGHT_PX,
 } from '@/constants/time';
 import { SERVICES } from '@/constants/config';
-import { isSameDay, parse, differenceInMinutes } from 'date-fns';
-import { toZonedTime, format } from 'date-fns-tz';
+import { isSameDay, parse, differenceInMinutes, parseISO } from 'date-fns';
+import {
+  toZonedTime,
+  format,
+  formatInTimeZone,
+  fromZonedTime,
+} from 'date-fns-tz';
 
 const APP_TIMEZONE = 'Asia/Ho_Chi_Minh';
 
-export function getToday(): Date {
-  return toZonedTime(new Date(), APP_TIMEZONE);
+export function getTodayString(date: Date = new Date()): string {
+  return formatInTimeZone(date, APP_TIMEZONE, 'yyyy-MM-dd');
 }
 
-export function getTodayString(): string {
-  return format(getToday(), 'yyyy-MM-dd', { timeZone: APP_TIMEZONE });
+export function getToday(): Date {
+  //   const todayStr = formatInTimeZone(new Date(), APP_TIMEZONE, 'yyyy-MM-dd');
+  const todayStr = formatInTimeZone(new Date(), APP_TIMEZONE, 'yyyy-MM-dd');
+
+  // 2. Parsing a date-only string (Interpreted as local midnight)
+  //   return parseISO(todayStr); // local midnight, safe — no further timezone math needed since bookingDate compares are string-based anyway
+
+  return new Date(todayStr);
+  //   return fromZonedTime(todayStr, APP_TIMEZONE); // explicitly says "this string IS Vietnam time," no ambiguity
 }
+
+// export function getToday(): Date {
+//   return toZonedTime(new Date(), APP_TIMEZONE);
+// }
+
+// export function getTodayString(): string {
+//   return format(getToday(), 'yyyy-MM-dd', { timeZone: APP_TIMEZONE });
+// }
 
 export function getTZOffsetMins() {
   return new Date().getTimezoneOffset();

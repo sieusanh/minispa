@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/client';
 import { type Booking, BookingStatus } from '@/types';
 import { SERVICES } from '@/constants/config';
 import { CACHE_TAG } from '@/constants/cache';
-import { getEndTime, getDateWithOffset } from '@/utils/time';
+import { getEndTime, getDateWithOffset, getTodayString } from '@/utils/time';
 import { toCamel } from './common';
 
 // export function deriveStatus(
@@ -61,13 +61,13 @@ export function deriveStatus(
 }
 
 export function transformBookingInput(
-  payload: Partial<Booking>
-  //   offsetMins: number
+  payload: Partial<Booking>,
+  offsetMins: number
 ) {
   payload.isActive = true;
 
   //   payload.status = deriveStatus(payload);
-  //   payload.date = getDateWithOffset(payload.date!, offsetMins);
+  payload.date = getDateWithOffset(payload.date!, offsetMins);
   return payload;
 }
 
@@ -88,7 +88,8 @@ export function runRealtimeBookings(
 ) {
   const supabase: SupabaseClient = createClient();
   //   const supabase: SupabaseClient = createAdminClient();
-  const bookingDate = date.toLocaleDateString('en-CA'); // 'YYYY-MM-DD'
+  //   const bookingDate = date.toLocaleDateString('en-CA'); // 'YYYY-MM-DD'
+  const bookingDate = getTodayString(date);
   const channel: RealtimeChannel = supabase
     .channel(`bookings-${bookingDate}`) // unique channel per date
     .on(
