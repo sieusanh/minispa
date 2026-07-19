@@ -49,7 +49,6 @@ export async function checkVacancy(date: Date, fromTime: string) {
 
 export async function findBookingsByDate(
   date: Date,
-  tzOffsetMins: number,
   staffId: string = ADMIN.id
 ) {
   //   'use cache';
@@ -66,9 +65,10 @@ export async function findBookingsByDate(
   //   });
   //   cacheTag(bookingDateTag(date));
 
-  const bookingDate = getDateWithOffset(date, tzOffsetMins).toLocaleDateString(
-    'en-CA'
-  );
+  //   const bookingDate = getDateWithOffset(date, tzOffsetMins).toLocaleDateString(
+  //     'en-CA'
+  //   );
+  const bookingDate = date.toLocaleDateString('en-CA');
 
   const supabase: SupabaseClient = createAdminClient();
   let query = supabase
@@ -135,11 +135,11 @@ export async function insertBooking(payload: Booking) {
 }
 
 export async function upsertBooking(
-  payload: Partial<Booking>,
-  tzOffsetMins: number
+  payload: Partial<Booking>
+  //   tzOffsetMins: number
 ) {
   // transmuting
-  const booking = toSnake(transformBookingInput(payload, tzOffsetMins));
+  const booking = toSnake(transformBookingInput(payload));
 
   //   const supabase = await createClient();
   const supabase: SupabaseClient = createAdminClient();

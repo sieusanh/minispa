@@ -100,7 +100,7 @@ import { deriveStatus, runRealtimeBookings } from '@/utils/bookings';
 import {
   upsertBooking,
   bulkUpdateBooking,
-  softDeleteBookingById,
+  hardDeleteBookingById,
   findBookingsByDate,
 } from '@/lib/data/bookings';
 
@@ -1768,11 +1768,7 @@ export function Scheduler({
     // setDate(newDate);
 
     startNavigation(async () => {
-      const fresh = await findBookingsByDate(
-        newDate,
-        getTZOffsetMins(),
-        userId
-      );
+      const fresh = await findBookingsByDate(newDate, userId);
 
       // Re-derive status on arrival so cache staleness doesn't matter
       const now = new Date();
@@ -1788,7 +1784,7 @@ export function Scheduler({
 
   function handleDelete(id: string) {
     startDeleting(async () => {
-      await softDeleteBookingById(id);
+      await hardDeleteBookingById(id);
 
       setBookings((prev) => [...prev].filter((b) => b.id !== id));
     });
@@ -1801,8 +1797,8 @@ export function Scheduler({
 
   function handleSaveCreate(d: Partial<Booking>) {
     startSaving(async () => {
-      const offsetMins = new Date().getTimezoneOffset();
-      const { id } = await upsertBooking(d, offsetMins);
+      //   const offsetMins = new Date().getTimezoneOffset();
+      const { id } = await upsertBooking(d);
 
       if (!compareDateString(d.date!, date)) {
         return;
@@ -1815,7 +1811,7 @@ export function Scheduler({
   function handleSaveEdit(d: Partial<Booking>) {
     startSaving(async () => {
       const offsetMins = new Date().getTimezoneOffset();
-      await upsertBooking(d, offsetMins);
+      await upsertBooking(d);
 
       if (!compareDateString(d.date!, date)) {
         setBookings((prev) =>

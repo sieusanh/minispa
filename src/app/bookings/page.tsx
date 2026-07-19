@@ -7,11 +7,10 @@
 // import { TODAY, INIT_BOOKINGS } from '@/constants/seed';
 // import { BookingStatus } from '@/types';
 // import { BookingTimeline, BookingDrawer } from './_components';
-
 import { headers } from 'next/headers';
 import { findAllStaff } from '@/lib/data/staff';
 import { findBookingsByDate } from '@/lib/data/bookings';
-import { getToday, getTZOffsetMins } from '@/utils/time';
+import { getToday } from '@/utils/time';
 import { Scheduler } from './components';
 import { UserRole } from '@/types';
 
@@ -263,11 +262,10 @@ export default async function BookingPage() {
   const isMobile: boolean = headersList.get('x-is-mobile') ? true : false;
 
   const staffPromise = findAllStaff();
-  const bookingsPromise = findBookingsByDate(
-    getToday(),
-    getTZOffsetMins(),
-    userId
-  );
+  const today = getToday();
+
+  console.log('============== BookingPage today ', today);
+  const bookingsPromise = findBookingsByDate(getToday(), userId);
   //   const todayQueryParam = { date: new Date() };
   //   const bookings = findAllBookings({ where: todayQueryParam });
 

@@ -61,13 +61,13 @@ export function deriveStatus(
 }
 
 export function transformBookingInput(
-  payload: Partial<Booking>,
-  offsetMins: number
+  payload: Partial<Booking>
+  //   offsetMins: number
 ) {
   payload.isActive = true;
 
   //   payload.status = deriveStatus(payload);
-  payload.date = getDateWithOffset(payload.date!, offsetMins);
+  //   payload.date = getDateWithOffset(payload.date!, offsetMins);
   return payload;
 }
 
