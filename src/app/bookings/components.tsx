@@ -1684,6 +1684,9 @@ export function Scheduler({
 
       // INSERT — add new block to timeline instantly
       (newBooking) => {
+        // if (!compareDateString(newBooking.date!, date)) {
+        //   return;
+        // }
         setBookings((prev) => {
           // Prevent duplicate if local upsert already added it
           const exists = prev.some((b) => b.id === newBooking.id);
@@ -1802,11 +1805,11 @@ export function Scheduler({
       const offsetMins = new Date().getTimezoneOffset();
       const { id } = await upsertBooking(d, offsetMins);
 
-      if (!compareDateString(d.date!, date)) {
-        return;
-      }
+      //   if (!compareDateString(d.date!, date)) {
+      //     return;
+      //   }
 
-      setBookings((prev) => [...prev, { id, ...d }]);
+      //   setBookings((prev) => [...prev, { id, ...d }]);
     });
   }
 
